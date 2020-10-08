@@ -1,0 +1,39 @@
+<html>
+  <head>
+    <script src="/bundle.js"></script>
+    <!-- Importing aframe-physics-system with Yarn/NPM causes issues -->
+    <script src="//cdn.rawgit.com/donmccurdy/aframe-physics-system/v4.0.1/dist/aframe-physics-system.min.js"></script>
+    <script>
+      // const socket = io.connect();
+      // // // socket.on('fooBarEvent', function(data){
+      // // //   console.log(data);
+      // // // });
+      // socket.emit('userJoined', "whho");
+    </script>
+  </head>
+
+  <body>
+    <a-scene client physics="debug: true" renderer="antialias: true">
+      <!-- Asset Manager -->
+      <a-assets>
+        <a-asset-item id="cs-logo" src="assets/CSLogo.glb"></a-asset-item>
+      </a-assets>
+
+      <!-- Collision plane -->
+      <a-box id="ground" static-body scale="10 1 10" position="0 -0.5 0" color="#444444" visible="true"></a-box>
+
+      <!-- Grabbable box -->
+      <a-box velocity-glow class="collidable" grab static-body position="0 0.5 -1" color="#cccccc"></a-box>
+
+      <!-- Camera Rig - has to be here because of A-Frame's order-dependent rendering -->
+      <a-entity id="rig">
+        <a-entity quest-controls>
+          <a-entity id="camera" camera="active: true" position="0 1.6 0" look-controls wasd-controls>
+            <a-entity raycaster="objects: .ui, .clickable; far: 20"></a-entity>
+          </a-entity>
+        </a-entity>
+      </a-entity>
+
+    </a-scene>
+  </body>
+</html>
