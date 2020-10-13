@@ -1,23 +1,25 @@
 import * as io from 'socket.io-client';
-import './destroyer';
+import './aframe/destroyer';
+import './aframe/velocity-glow';
 
 let socket;
 let scene;
 let spawnedElement;
 
 AFRAME.registerComponent('client', {
-  multiple: true,
+
   init: function () {
-    let spawnCount = 0;
     scene = document.querySelector('a-scene');
     socket = io();
-    
     // Set up the tick throttling.
     this.tick = AFRAME.utils.throttleTick(this.tick, 10000, this);
+    let boxCount = 0;
   },
 
+  multiple: true,
+
   events: {
-    initSpawn: function(evt) {
+    initSpawn: function (evt) {
       console.log('init spawn init!');
     }
   },
@@ -27,15 +29,25 @@ AFRAME.registerComponent('client', {
       console.log('Entity collided with');
     });
 
-    
+
   },
 
-  tick: function (t, dt) { 
-    socket.on('spawnEntity', function() {
-      console.log('Spawning entity');
-      spawnedElement = document.createElement('a-entity');
-      spawnedElement.setAttribute('cs-logo', '')
-      scene.appendChild(spawnedElement);
+  tick: function (t, dt) {
+    let boxCount = 0;
+    socket.on('spawnEntity', function (data) {
+      let spawn;
+      
+      let randomRadius = 0.05 + Math.random() * 0.1;
+      spawn = document.createElement('a-sphere');
+      spawn.setAttribute('radius', randomRadius);
+      spawn.setAttribute('position', '0 2 -1')
+      spawn.setAttribute('material', 'color', '#232323');
+      spawn.setAttribute('dynamic-body', { mass: randomRadius, linearDamping: 0.5, angularDamping: 0.5 });
+      spawn.setAttribute('velocity-glow', '');
+      spawn.setAttribute('grab', '');
+      spawn.setAttribute('class', 'collidable');
+      spawn.setAttribute(`destroyer__${boxCount += 1}`, { 'ttl': 10, 'msg': 'Custom message' });
+      scene.appendChild(spawn);
     });
   }
 });

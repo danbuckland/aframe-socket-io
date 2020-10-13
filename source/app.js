@@ -1,6 +1,7 @@
 import './styles.css';
-import * as io from 'socket.io-client';
 import 'aframe';
 
-import './components/cs-logo';
+import './components/aframe/cs-logo';
 import './components/client';
+
+window.CLOCK = new THREE.Clock();

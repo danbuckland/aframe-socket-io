@@ -2,7 +2,7 @@ AFRAME.registerComponent('cs-logo', {
   multiple: true,
   
   init: function () {
-    let scene = document.querySelector('a-scene');
+    let csLogo = document.createElement('a-entity');
 
     let csLogoArms = document.createElement('a-entity');
     csLogoArms.setAttribute('gltf-model', '#cs-logo');
@@ -21,8 +21,10 @@ AFRAME.registerComponent('cs-logo', {
     csLogoDot.setAttribute('position', '-0.1917 1.3083 -1');
     csLogoDot.setAttribute('rotation', '90 0 0');
     
-    scene.appendChild(csLogoArms);
-    scene.appendChild(csLogoDot);
+    csLogo.appendChild(csLogoArms);
+    csLogo.appendChild(csLogoDot);
+
+    this.el.appendChild(csLogo);
     
   },
 });

@@ -45,5 +45,5 @@ app.get('/',function(req, res) {
 // when a client connects, log it on the server and spawn an object for others
 io.on('connection', function(socket){
 	console.log(`${socket.id} connected`);
-	socket.broadcast.emit('spawnEntity');
+	socket.broadcast.emit('spawnEntity', { id:socket.id });
 });
