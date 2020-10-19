@@ -1,6 +1,6 @@
 import * as io from 'socket.io-client';
-import './aframe/destroyer';
-import './aframe/velocity-glow';
+import './destroyer';
+import './velocity-glow';
 
 AFRAME.registerComponent('client', {
 
