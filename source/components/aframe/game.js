@@ -1,13 +1,13 @@
 import * as io from 'socket.io-client';
 let socket;
 let playerId;
+let remoteData = [];
+
 
 AFRAME.registerComponent('game', {
 
 	init: function () {
 		let scene = document.querySelector('a-scene');
-		let remoteData = [];
-
 		// append new local-player component to scene
 		scene.setAttribute('local-player', '');
 
@@ -15,7 +15,7 @@ AFRAME.registerComponent('game', {
 
 		socket.on('remoteData', function (data) {
 			remoteData = data;
-			remoteData.forEach( function(data){
+			remoteData.forEach(function (data) {
 				if (playerId != data.id) {
 					console.log(`A wild ${data.shape} known as ${data.id} appeared`);
 				}
@@ -26,52 +26,35 @@ AFRAME.registerComponent('game', {
 
 	// NO NEED FOR TICK HANDLER, SERVER HANDLES INTERVAL, LISTENER DETECTS
 	tick: function (t, dt) {
-		//check for remote players changed
-			// updateRemotePlayers(dt){
-			// 	if (this.remoteData===undefined || this.remoteData.length == 0 || this.player===undefined || this.player.id===undefined) return;
+		let scene = this.el.sceneEl;
+		// Return if there are no remote players
+		if (remoteData === undefined || remoteData.length == 0 || playerId === undefined) { return };
 
-			// 	const newPlayers = [];
-			// 	const game = this;
-			// 	//Get all remotePlayers from remoteData array
-			// 	const remotePlayers = [];
-			// 	const remoteColliders = [];
-
-			// 	this.remoteData.forEach( function(data){
-			// 		if (game.player.id != data.id){
-			// 			//Is this player being initialised?
-			// 			let iplayer;
-			// 			game.initialisingPlayers.forEach( function(player){
-			// 				if (player.id == data.id) iplayer = player;
-			// 			});
-			// 			//If not being initialised check the remotePlayers array
-			// 			if (iplayer===undefined){
-			// 				let rplayer;
-			// 				game.remotePlayers.forEach( function(player){
-			// 					if (player.id == data.id) rplayer = player;
-			// 				});
-			// 				if (rplayer===undefined){
-			// 					//Initialise player
-			// 					game.initialisingPlayers.push( new Player( game, data ));
-			// 				}else{
-			// 					//Player exists
-			// 					remotePlayers.push(rplayer);
-			// 					remoteColliders.push(rplayer.collider);
-			// 				}
-			// 			}
-			// 		}
-			// 	});
-
-			// 	this.scene.children.forEach( function(object){
-			// 		if (object.userData.remotePlayer && game.getRemotePlayerById(object.userData.id)==undefined){
-			// 			game.scene.remove(object);
-			// 		}	
-			// 	});
-
-			// 	this.remotePlayers = remotePlayers;
-			// 	this.remoteColliders = remoteColliders;
-			// 	this.remotePlayers.forEach(function(player){ player.update( dt ); });	
-			// }
-
+		const remotePlayers = [];
+		remoteData.forEach(function (data) {
+			if (playerId != data.id) {
+				if (!document.getElementById(data.id)) {
+					console.log('Remote player does not exist in scene, creating...');
+					let remotePlayer = document.createElement('a-entity');
+					remotePlayer.setAttribute('player', { id: data.id, shape: data.shape, color: data.color });
+					scene.appendChild(remotePlayer);
+				}
+			}
+		});
+		// let playerEntity = document.createElement('a-entity');
+		// playerEntity.setAttribute(`player__${player.id}`, { id: player.id, shape: shape, color: color, local: true });
+		// let rplayer;
+		// game.remotePlayers.forEach(function (player) {
+		// 	if (player.id == data.id) rplayer = player;
+		// });
+		// if (rplayer === undefined) {
+		// 	//Initialise player
+		// 	game.initialisingPlayers.push(new Player(game, data));
+		// } else {
+		// 	//Player exists
+		// 	remotePlayers.push(rplayer);
+		// 	remoteColliders.push(rplayer.collider);
+		// }
 	}
 });
 
@@ -553,8 +536,6 @@ AFRAME.registerComponent('player', {
 		if (local) {
 			color = colors[Math.floor(Math.random() * colors.length)];
 			shape = shapes[Math.floor(Math.random() * shapes.length)];
-		} else {
-			console.log(`Player ${this.data.id} joined as a ${color} ${shape}`);
 		}
 
 		const initSocket = () => {
@@ -570,6 +551,7 @@ AFRAME.registerComponent('player', {
 
 		// create the 3d model of the player 
 		let playerEntity = document.createElement(shape);
+		playerEntity.setAttribute('id', this.data.id);
 		playerEntity.setAttribute('color', color);
 		playerEntity.setAttribute('scale', '0.25 0.25 0.25')
 		playerEntity.setAttribute('position', '0 1.5 -1');
@@ -583,7 +565,6 @@ AFRAME.registerComponent('player', {
 			console.log(`Player ${this.data.id} joined as a ${color} ${shape}`);
 		}
 
-		
 		// if local, move the camera to this player's position
 	}
 
@@ -595,22 +576,20 @@ AFRAME.registerComponent('local-player', {
 	multiple: false,
 
 	init: function () {
-		
+
 		socket = io();
 
 		socket.on('setId', function (data) {
 			playerId = data.id;
 			console.log('You are player ' + playerId);
 			let scene = document.querySelector('a-scene');
-			scene.setAttribute('player', 'id', playerId );
+			scene.setAttribute('player', 'id', playerId);
 		});
 
-		// let playerEntity = document.createElement('a-entity');
-		
-		// scene.setAttribute('player', { id: player.id, shape: shape, color: color, local: true });
-		
-		
-		
+
+
+
+
 		// scene.appendChild(playerEntity);
 	}
 });
