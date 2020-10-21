@@ -2,11 +2,13 @@ import * as io from 'socket.io-client';
 import './destroyer';
 import './velocity-glow';
 
+let socket;
+
 AFRAME.registerComponent('client', {
 
   init: function () {
     let scene = document.querySelector('a-scene');
-    let socket = io();
+    socket = io();
 
     socket.on('spawnEntity', function (data) {
       let spawn = document.createElement('a-entity');
