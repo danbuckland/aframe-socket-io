@@ -7,24 +7,13 @@ let remoteData = [];
 AFRAME.registerComponent('game', {
 
 	init: function () {
-		let scene = document.querySelector('a-scene');
 		// append new local-player component to scene
-		scene.setAttribute('local-player', '');
+		this.el.sceneEl.setAttribute('local-player', '');
 
-		// send something to say local player was created
-
-		socket.on('remoteData', function (data) {
-			remoteData = data;
-			remoteData.forEach(function (data) {
-				if (playerId != data.id) {
-					console.log(`A wild ${data.shape} known as ${data.id} appeared`);
-				}
-			});
-		});
+		socket.on('remoteData', function (data) { remoteData = data });
 		// get all connected remote players and initialise them locally
 	},
 
-	// NO NEED FOR TICK HANDLER, SERVER HANDLES INTERVAL, LISTENER DETECTS
 	tick: function (t, dt) {
 		let scene = this.el.sceneEl;
 		// Return if there are no remote players
@@ -41,20 +30,82 @@ AFRAME.registerComponent('game', {
 				}
 			}
 		});
-		// let playerEntity = document.createElement('a-entity');
-		// playerEntity.setAttribute(`player__${player.id}`, { id: player.id, shape: shape, color: color, local: true });
-		// let rplayer;
-		// game.remotePlayers.forEach(function (player) {
-		// 	if (player.id == data.id) rplayer = player;
-		// });
-		// if (rplayer === undefined) {
-		// 	//Initialise player
-		// 	game.initialisingPlayers.push(new Player(game, data));
-		// } else {
-		// 	//Player exists
-		// 	remotePlayers.push(rplayer);
-		// 	remoteColliders.push(rplayer.collider);
-		// }
+	}
+});
+
+// builds the player model itself
+AFRAME.registerComponent('player', {
+
+	multiple: true,
+
+	schema: {
+		color: { type: 'color' },
+		shape: { type: 'string' },
+		id: { type: 'string' }
+	},
+
+	init: function () {
+		const colors = ['#ff6666', '#ff66ff', '#ffff66', '#66ffff', '#66ff66', '#6666ff'];
+		const shapes = ['sphere', 'cylinder', 'box', 'cone'];
+		let scene = document.querySelector('a-scene');
+		let color = this.data.color;
+		let shape = this.data.shape;
+		let local = !shape;
+
+		// if player component is local, set some values for the player
+		if (local) {
+			color = colors[Math.floor(Math.random() * colors.length)];
+			shape = shapes[Math.floor(Math.random() * shapes.length)];
+		}
+
+		const initSocket = () => {
+			socket.emit('init', {
+				shape: shape,
+				color: color,
+				id: this.data.id
+				// x: this.object.position.x,
+				// y: this.object.position.y,
+				// z: this.object.position.z,
+			});
+		}
+
+		// create the 3d model of the player 
+		let el = this.el;
+		el.setAttribute('id', this.data.id);
+		el.setAttribute('geometry', { primitive: shape });
+		el.setAttribute('material', 'color', color);
+		el.setAttribute('position', { x: 0, y: 1.5, z: -1 });
+		el.setAttribute('scale', '0.25 0.25 0.25')
+
+		// emit 'init' event to share info about the player if player is local
+		if (local) {
+			console.log(`You joined as a ${color} ${shape}`)
+			initSocket();
+		} else {
+			console.log(`Player ${this.data.id} joined as a ${color} ${shape}`);
+		}
+
+		// if local, move the camera to this player's position
+	}
+});
+
+// get's called first when the user connects and creates the socket
+AFRAME.registerComponent('local-player', {
+	multiple: false,
+
+	init: function () {
+		console.log('initialising local player...')
+		socket = io();
+
+		socket.on('setId', function (data) {
+			playerId = data.id;
+			console.log('You are player ' + playerId);
+			let scene = document.querySelector('a-scene');
+			let localPlayer = document.createElement('a-entity');
+			localPlayer.setAttribute('player', { id: data.id });
+			localPlayer.setAttribute('is-local', 'yes');
+			scene.appendChild(localPlayer);
+		});
 	}
 });
 
@@ -509,91 +560,6 @@ class Game {
 		this.renderer.render(this.scene, this.camera);
 	}
 }
-
-// builds the player model itself
-AFRAME.registerComponent('player', {
-
-	multiple: true,
-
-	schema: {
-		color: { type: 'color' },
-		shape: { type: 'string' },
-		id: { type: 'string' }
-	},
-
-	init: function () {
-		const colors = ['#ff6666', '#ff66ff', '#ffff66', '#66ffff', '#66ff66', '#6666ff'];
-		const shapes = ['a-sphere', 'a-cylinder', 'a-box', 'a-cone'];
-		if (this.data.shape) {
-			console.log('A remote player is trying to come in!');
-		}
-		let scene = document.querySelector('a-scene');
-		let color = this.data.color;
-		let shape = this.data.shape;
-		let local = !shape;
-
-		// if player component is local, set some values for the player
-		if (local) {
-			color = colors[Math.floor(Math.random() * colors.length)];
-			shape = shapes[Math.floor(Math.random() * shapes.length)];
-		}
-
-		const initSocket = () => {
-			socket.emit('init', {
-				shape: shape,
-				color: color,
-				id: this.data.id
-				// x: this.object.position.x,
-				// y: this.object.position.y,
-				// z: this.object.position.z,
-			});
-		}
-
-		// create the 3d model of the player 
-		let playerEntity = document.createElement(shape);
-		playerEntity.setAttribute('id', this.data.id);
-		playerEntity.setAttribute('color', color);
-		playerEntity.setAttribute('scale', '0.25 0.25 0.25')
-		playerEntity.setAttribute('position', '0 1.5 -1');
-		scene.appendChild(playerEntity);
-
-		// emit 'init' event to share info about the player if player is local
-		if (local) {
-			console.log(`You joined as a ${color} ${shape}`)
-			initSocket();
-		} else {
-			console.log(`Player ${this.data.id} joined as a ${color} ${shape}`);
-		}
-
-		// if local, move the camera to this player's position
-	}
-
-
-});
-
-// get's called first when the user connects and creates the socket
-AFRAME.registerComponent('local-player', {
-	multiple: false,
-
-	init: function () {
-
-		socket = io();
-
-		socket.on('setId', function (data) {
-			playerId = data.id;
-			console.log('You are player ' + playerId);
-			let scene = document.querySelector('a-scene');
-			scene.setAttribute('player', 'id', playerId);
-		});
-
-
-
-
-
-		// scene.appendChild(playerEntity);
-	}
-});
-
 class Player {
 	constructor(game, options) {
 		this.local = true;
