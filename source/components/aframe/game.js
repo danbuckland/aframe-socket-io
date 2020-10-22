@@ -23,12 +23,29 @@ AFRAME.registerComponent('game', {
 		remoteData.forEach(function (data) {
 			if (playerId != data.id) {
 				if (!document.getElementById(data.id)) {
-					console.log('Remote player does not exist in scene, creating...');
+					// Append player to scene if remote player does not exist
 					let remotePlayer = document.createElement('a-entity');
-					remotePlayer.setAttribute('player', { id: data.id, shape: data.shape, color: data.color });
+					remotePlayer.setAttribute('player', { id: data.id, shape: data.shape, color: data.color, x: data.x, y: data.y, z: data.z });
 					scene.appendChild(remotePlayer);
+				} else if (document.getElementById(data.id)) {
+					// Update remote player position if it does exist
+					let remotePlayer = document.getElementById(data.id);
+					remotePlayer.object3D.position.set(data.x, data.y, data.z);
 				}
 			}
+		});
+
+		var position = new THREE.Vector3();
+    var quaternion = new THREE.Quaternion();
+    
+		let localPlayerElement = document.getElementById(playerId);
+		localPlayerElement.object3D.getWorldPosition(position);
+		localPlayerElement.object3D.getWorldQuaternion(quaternion);
+
+		socket.emit('update', {
+			x: position.x,
+			y: position.y,
+			z: position.z
 		});
 	}
 });
@@ -36,12 +53,16 @@ AFRAME.registerComponent('game', {
 // builds the player model itself
 AFRAME.registerComponent('player', {
 
+	// TODO: Consider creating an 'a-player' primitive
 	multiple: true,
 
 	schema: {
 		color: { type: 'color' },
 		shape: { type: 'string' },
-		id: { type: 'string' }
+		id: { type: 'string' },
+		x: { type: 'number' },
+		y: { type: 'number' },
+		z: { type: 'number' }
 	},
 
 	init: function () {
@@ -51,21 +72,23 @@ AFRAME.registerComponent('player', {
 		let color = this.data.color;
 		let shape = this.data.shape;
 		let local = !shape;
+		let position = new THREE.Vector3( this.data.x, this.data.y + 1.6, this.data.z); // account for head height
 
 		// if player component is local, set some values for the player
 		if (local) {
 			color = colors[Math.floor(Math.random() * colors.length)];
 			shape = shapes[Math.floor(Math.random() * shapes.length)];
+			position = new THREE.Vector3( 0, 0, -1.3 );
 		}
 
 		const initSocket = () => {
 			socket.emit('init', {
 				shape: shape,
 				color: color,
-				id: this.data.id
-				// x: this.object.position.x,
-				// y: this.object.position.y,
-				// z: this.object.position.z,
+				id: this.data.id,
+				x: position.x,
+				y: position.y,
+				z: position.z,
 			});
 		}
 
@@ -74,8 +97,8 @@ AFRAME.registerComponent('player', {
 		el.setAttribute('id', this.data.id);
 		el.setAttribute('geometry', { primitive: shape });
 		el.setAttribute('material', 'color', color);
-		el.setAttribute('position', { x: 0, y: 1.5, z: -1 });
-		el.setAttribute('scale', '0.25 0.25 0.25')
+		el.setAttribute('scale', '0.25 0.25 0.25');
+		el.setAttribute('position', position);
 
 		// emit 'init' event to share info about the player if player is local
 		if (local) {
@@ -94,17 +117,17 @@ AFRAME.registerComponent('local-player', {
 	multiple: false,
 
 	init: function () {
-		console.log('initialising local player...')
 		socket = io();
 
 		socket.on('setId', function (data) {
 			playerId = data.id;
 			console.log('You are player ' + playerId);
 			let scene = document.querySelector('a-scene');
+			let camera = document.getElementById('camera');
 			let localPlayer = document.createElement('a-entity');
 			localPlayer.setAttribute('player', { id: data.id });
 			localPlayer.setAttribute('is-local', 'yes');
-			scene.appendChild(localPlayer);
+			camera.appendChild(localPlayer);
 		});
 	}
 });

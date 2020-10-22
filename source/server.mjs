@@ -61,12 +61,16 @@ io.on('connection', function (socket) {
 		console.log(`socket.init ${data.id}`);
 		socket.userData.shape = data.shape;
 		socket.userData.color = data.color;
-		// TODO: Add position data here
+		socket.userData.x = data.x;
+		socket.userData.y = data.y;
+		socket.userData.z = data.z;
 	});
 
 	// update user data that changes frame to frame
 	socket.on('update', function (data) {
-		// TODO: Add position data here
+		socket.userData.x = data.x;
+		socket.userData.y = data.y;
+		socket.userData.z = data.z;
 	});
 
 	//socket.broadcast.emit('spawnEntity', { id: socket.id });
@@ -85,9 +89,9 @@ setInterval(function () {
 				id: socket.id,
 				shape: socket.userData.shape,
 				color: socket.userData.color,
-				// x: socket.userData.x,
-				// y: socket.userData.y,
-				// z: socket.userData.z,
+				x: socket.userData.x,
+				y: socket.userData.y,
+				z: socket.userData.z,
 				// heading: socket.userData.heading,
 				// pb: socket.userData.pb,
 				// action: socket.userData.action
