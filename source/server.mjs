@@ -45,7 +45,7 @@ app.get('/', function (req, res) {
 // when a client connects, log it on the server and spawn an object for others
 io.on('connection', function (socket) {
 	// define custom user data for position and direction
-	socket.userData = { x: 0, y: 0, z: 0, heading: 0 };
+	socket.userData = { x: 0, y: 0, z: 0, rx: 0, ry: 0, rz: 0, rw: 1 };
 	console.log(`${socket.id} connected`);
 	// emit the socket id to connected clients
 	socket.emit('setId', { id: socket.id });
@@ -64,6 +64,10 @@ io.on('connection', function (socket) {
 		socket.userData.x = data.x;
 		socket.userData.y = data.y;
 		socket.userData.z = data.z;
+		socket.userData.rx = data.rx;
+		socket.userData.ry = data.ry;
+		socket.userData.rz = data.rz;
+		socket.userData.rw = data.rw;
 	});
 
 	// update user data that changes frame to frame
@@ -71,6 +75,10 @@ io.on('connection', function (socket) {
 		socket.userData.x = data.x;
 		socket.userData.y = data.y;
 		socket.userData.z = data.z;
+		socket.userData.rx = data.rx;
+		socket.userData.ry = data.ry;
+		socket.userData.rz = data.rz;
+		socket.userData.rw = data.rw;
 	});
 
 	//socket.broadcast.emit('spawnEntity', { id: socket.id });
@@ -92,12 +100,13 @@ setInterval(function () {
 				x: socket.userData.x,
 				y: socket.userData.y,
 				z: socket.userData.z,
-				// heading: socket.userData.heading,
-				// pb: socket.userData.pb,
-				// action: socket.userData.action
+				rx: socket.userData.rx,
+				ry: socket.userData.ry,
+				rz: socket.userData.rz,
+				rw: socket.userData.rw
 			});
 		}
 	}
 	// send remote data array 'pack' to all clients
 	if (pack.length > 0) io.emit('remoteData', pack);
-}, 40); // Change this back to 40 later
+}, 50);
