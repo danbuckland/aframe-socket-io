@@ -11,7 +11,18 @@ AFRAME.registerComponent('game', {
 		this.el.sceneEl.setAttribute('local-player', '');
 
 		socket.on('remoteData', function (data) { remoteData = data });
-		// get all connected remote players and initialise them locally
+
+		// Remove remote players who disconnect
+		// TODO handle local player disconnecting if that's a thing
+		socket.on('deletePlayer', function (data) {
+			let disconnectedPlayer = document.getElementById(data.id);
+			console.log(`Player ${data.id} disconnected`);
+			if (disconnectedPlayer) {
+				console.log('disconnected player exists in scene')
+				disconnectedPlayer.setAttribute('destroyer', { ttl: 3 });
+				disconnectedPlayer.setAttribute('dynamic-body', { shape: 'box', mass: 0.5, angularDamping: 0.5, linearDamping: 0.9 });
+			}
+		});
 	},
 
 	tick: function (t, dt) {
@@ -36,8 +47,8 @@ AFRAME.registerComponent('game', {
 		});
 
 		var position = new THREE.Vector3();
-    var quaternion = new THREE.Quaternion();
-    
+		var quaternion = new THREE.Quaternion();
+
 		let localPlayerElement = document.getElementById(playerId);
 		localPlayerElement.object3D.getWorldPosition(position);
 		localPlayerElement.object3D.getWorldQuaternion(quaternion);
@@ -72,13 +83,13 @@ AFRAME.registerComponent('player', {
 		let color = this.data.color;
 		let shape = this.data.shape;
 		let local = !shape;
-		let position = new THREE.Vector3( this.data.x, this.data.y + 1.6, this.data.z); // account for head height
+		let position = new THREE.Vector3(this.data.x, this.data.y + 1.6, this.data.z); // account for head height
 
 		// if player component is local, set some values for the player
 		if (local) {
 			color = colors[Math.floor(Math.random() * colors.length)];
 			shape = shapes[Math.floor(Math.random() * shapes.length)];
-			position = new THREE.Vector3( 0, 0, -1.3 );
+			position = new THREE.Vector3(0, 0, -1.3);
 		}
 
 		const initSocket = () => {
