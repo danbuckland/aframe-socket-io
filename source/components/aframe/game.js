@@ -20,7 +20,7 @@ AFRAME.registerComponent('game', {
 			console.log(`Player ${data.id} disconnected`);
 			if (disconnectedPlayer) {
 				disconnectedPlayer.setAttribute('destroyer', { ttl: 3 });
-				disconnectedPlayer.setAttribute('dynamic-body', { shape: 'box', mass: 0.5, angularDamping: 0.5, linearDamping: 0.9 });
+				disconnectedPlayer.setAttribute('dynamic-body', { shape: 'box', mass: 2, angularDamping: 0.5, linearDamping: 0.9 });
 			}
 		});
 	},
@@ -93,33 +93,22 @@ AFRAME.registerComponent('player', {
 	},
 
 	init: function () {
-		const colors = ['#ff6666', '#ff66ff', '#ffff66', '#66ffff', '#66ff66', '#6666ff'];
+		const colors = ['#3A7D44', '#ffc2c5', '#e3bac6', '#bc9ec1', '#dbf4a7', '#9dcdc0', '#ff934f', '#5E6472', '#507DBC'];
 		const shapes = ['octahedron', 'dodecahedron', 'box', 'tetrahedron'];
+		let el = this.el;
 		let color = this.data.color;
 		let shape = this.data.shape;
 		let local = !shape;
 		let position = new THREE.Vector3(this.data.x, this.data.y + 1.6, this.data.z); // account for head height
-
+		
 		// if player component is local, set some values for the player
 		if (local) {
 			color = colors[Math.floor(Math.random() * colors.length)];
 			shape = shapes[Math.floor(Math.random() * shapes.length)];
 			position = new THREE.Vector3(0, 0, -1.3);
 		}
-
-		const initSocket = () => {
-			socket.emit('init', {
-				shape: shape,
-				color: color,
-				id: this.data.id,
-				x: position.x,
-				y: position.y,
-				z: position.z
-			});
-		}
-
+		
 		// create the 3d model of the player 
-		let el = this.el;
 		el.setAttribute('id', this.data.id);
 		el.setAttribute('geometry', { primitive: shape });
 		el.setAttribute('material', 'color', color);
@@ -129,16 +118,25 @@ AFRAME.registerComponent('player', {
 		// emit 'init' event to share info about the player if player is local
 		if (local) {
 			console.log(`You joined as a ${color} ${shape}`)
-			initSocket();
+			this.initSocket(shape, color, position);
 		} else {
 			console.log(`Player ${this.data.id} joined as a ${color} ${shape}`);
 		}
+	},
 
-		// if local, move the camera to this player's position
+	initSocket: function (shape, color, position) {
+		socket.emit('init', {
+			shape: shape,
+			color: color,
+			id: this.data.id,
+			x: position.x,
+			y: position.y,
+			z: position.z
+		});
 	}
 });
 
-// get's called first when the user connects and creates the socket
+// gets called first when the user connects and creates the socket
 AFRAME.registerComponent('local-player', {
 	multiple: false,
 
