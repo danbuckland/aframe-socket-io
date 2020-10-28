@@ -38,6 +38,7 @@ AFRAME.registerComponent('game', {
 				if (!document.getElementById(data.id)) {
 					// Append player to scene if remote player does not exist
 					// TODO: Check for race conditions and consider implementing concept of initialising players
+					// TODO: Add a create remote player function or constructor
 					let remotePlayer = document.createElement('a-entity');
 					remotePlayer.setAttribute('player', {
 						id: data.id,
@@ -81,6 +82,7 @@ AFRAME.registerComponent('game', {
 AFRAME.registerComponent('player', {
 
 	// TODO: Consider creating an 'a-player' primitive
+	// TODO: Add separate collision geometry to prevent players intersecting
 	multiple: true,
 
 	schema: {
