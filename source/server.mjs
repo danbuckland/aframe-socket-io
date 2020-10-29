@@ -58,7 +58,6 @@ io.on('connection', function (socket) {
 
 	// when a client initialises, set the data on the socket to match
 	socket.on('init', function (data) {
-		console.log(`socket.init ${data.id}`);
 		socket.userData.shape = data.shape;
 		socket.userData.color = data.color;
 		socket.userData.x = data.x;
