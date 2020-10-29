@@ -56,6 +56,11 @@ io.on('connection', function (socket) {
 		console.log(`${socket.id} disconnected`);
 	});
 
+	// socket.on('clientReconnected', (previousId) => {
+	// 	console.log('Someone reconnected ' + previousId);
+	// 	io.sockets.emit('deletePlayer', { id: previousId });
+	// });
+
 	// when a client initialises, set the data on the socket to match
 	socket.on('init', function (data) {
 		console.log(`socket.init ${data.id}`);
@@ -86,7 +91,6 @@ io.on('connection', function (socket) {
 
 // called 25 times a second on the server side
 setInterval(function () {
-	
 	const nsp = io.of('/');
 	let pack = [];
 	for (let id in io.sockets.sockets) {

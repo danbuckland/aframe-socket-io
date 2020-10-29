@@ -1,6 +1,7 @@
 import * as io from 'socket.io-client';
 let socket;
-let playerId;
+let localPlayerId;
+const localIds = [];
 let remoteData = [];
 
 // TODO: Consider turning game into a system https://aframe.io/docs/1.0.0/core/systems.html
@@ -12,16 +13,23 @@ AFRAME.registerComponent('game', {
 
 		socket.on('remoteData', function (data) { remoteData = data });
 
+		// socket.on('reconnect', function (data) {
+		// 	socket.emit('clientReconnected', localPlayerId);
+		// 	// delete local-player object
+		// 	// 
+		// });
+
 		// Remove remote players who disconnect
 		// TODO handle local player disconnecting when server restarts
 		// TODO consider calculating this from remoteData instead of discrete event
 		socket.on('deletePlayer', function (data) {
-			let disconnectedPlayer = document.getElementById(data.id);
+			// let disconnectedPlayer = document.getElementById(data.id);
 			console.log(`Player ${data.id} disconnected`);
-			if (disconnectedPlayer) {
-				disconnectedPlayer.setAttribute('destroyer', { ttl: 3 });
-				disconnectedPlayer.setAttribute('dynamic-body', { shape: 'box', mass: 2, angularDamping: 0.5, linearDamping: 0.9 });
-			}
+			// TODO: Add this nice disconnect visual back in later
+			// if (disconnectedPlayer) {
+			// 	disconnectedPlayer.setAttribute('destroyer', { ttl: 3 });
+			// 	disconnectedPlayer.setAttribute('dynamic-body', { shape: 'box', mass: 2, angularDamping: 0.5, linearDamping: 0.9 });
+			// }
 		});
 	},
 
@@ -30,11 +38,11 @@ AFRAME.registerComponent('game', {
 		// https://aframe.io/docs/1.0.0/introduction/best-practices.html#tick-handlers
 		let scene = this.el.sceneEl;
 		// Return if there are no remote players
-		if (remoteData === undefined || remoteData.length == 0 || playerId === undefined) { return };
+		if (remoteData === undefined || remoteData.length == 0 || localPlayerId === undefined) { return };
 
-		const remotePlayers = [];
+		let remoteIds = remoteData.map(player => player.id);
 		remoteData.forEach(function (data) {
-			if (playerId != data.id) {
+			if (localPlayerId != data.id) {
 				if (!document.getElementById(data.id)) {
 					// Append player to scene if remote player does not exist
 					// TODO: Check for race conditions and consider implementing concept of initialising players
@@ -49,6 +57,7 @@ AFRAME.registerComponent('game', {
 						z: data.z
 					});
 					scene.appendChild(remotePlayer);
+					localIds.push(data.id);
 				} else if (document.getElementById(data.id)) {
 					// Update remote player position if it does exist
 					let remotePlayer = document.getElementById(data.id);
@@ -57,13 +66,28 @@ AFRAME.registerComponent('game', {
 				}
 			}
 		});
+		// After creating any missing remote player locally, delete local player not on the remote
+		if (JSON.stringify(remoteIds.sort()) !== JSON.stringify(localIds.sort())) { // discrepancy exists
+			let orphanedIds = localIds.filter(x => !remoteIds.includes(x));
+			orphanedIds.forEach(function (id) {
+				if (id != localPlayerId ) {
+					console.log(`Deleting orphan ${id}`);
+					let orphanedElement = document.getElementById(id);
+					orphanedElement.parentNode.removeChild(orphanedElement);
+					let i = localIds.indexOf(id);
+					localIds.splice(i, i + 1);
+				}
+			})
+		};
 
 		var position = new THREE.Vector3();
 		var quaternion = new THREE.Quaternion();
 
-		let localPlayerElement = document.getElementById(playerId);
-		localPlayerElement.object3D.getWorldPosition(position);
-		localPlayerElement.object3D.getWorldQuaternion(quaternion);
+		let localPlayerElement = document.getElementById(localPlayerId);
+		if (localPlayerElement) {
+			localPlayerElement.object3D.getWorldPosition(position);
+			localPlayerElement.object3D.getWorldQuaternion(quaternion);
+		}
 
 		// TODO: Send positional data as Vector3
 		socket.emit('update', {
@@ -119,7 +143,7 @@ AFRAME.registerComponent('player', {
 
 		// emit 'init' event to share info about the player if player is local
 		if (local) {
-			console.log(`You joined as a ${color} ${shape}`)
+			console.log(`${localPlayerId} (you) joined as a ${color} ${shape}`);
 			this.initSocket(shape, color, position);
 		} else {
 			console.log(`Player ${this.data.id} joined as a ${color} ${shape}`);
@@ -146,9 +170,8 @@ AFRAME.registerComponent('local-player', {
 		socket = io();
 
 		socket.on('setId', function (data) {
-			playerId = data.id;
-			console.log('You are player ' + playerId);
-			let scene = document.querySelector('a-scene');
+			localPlayerId = data.id;
+			localIds.push(data.id);
 			let camera = document.getElementById('camera');
 			let localPlayer = document.createElement('a-entity');
 			localPlayer.setAttribute('player', { id: data.id });
