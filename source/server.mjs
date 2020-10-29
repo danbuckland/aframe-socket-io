@@ -56,11 +56,6 @@ io.on('connection', function (socket) {
 		console.log(`${socket.id} disconnected`);
 	});
 
-	// socket.on('clientReconnected', (previousId) => {
-	// 	console.log('Someone reconnected ' + previousId);
-	// 	io.sockets.emit('deletePlayer', { id: previousId });
-	// });
-
 	// when a client initialises, set the data on the socket to match
 	socket.on('init', function (data) {
 		console.log(`socket.init ${data.id}`);
@@ -85,17 +80,15 @@ io.on('connection', function (socket) {
 		socket.userData.rz = data.rz;
 		socket.userData.rw = data.rw;
 	});
-
-	//socket.broadcast.emit('spawnEntity', { id: socket.id });
 });
 
-// called 25 times a second on the server side
+// called 20 times a second on the server side
 setInterval(function () {
 	const nsp = io.of('/');
 	let pack = [];
 	for (let id in io.sockets.sockets) {
 		const socket = nsp.connected[id];
-		//Only push sockets that have been initialised
+		// only push sockets that have been initialised
 		if (socket.userData.shape !== undefined) {
 			pack.push({
 				id: socket.id,

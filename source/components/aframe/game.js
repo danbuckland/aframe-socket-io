@@ -143,7 +143,7 @@ AFRAME.registerComponent('player', {
 
 		// emit 'init' event to share info about the player if player is local
 		if (local) {
-			console.log(`${localPlayerId} (you) joined as a ${color} ${shape}`);
+			console.log(`You ${localPlayerId} joined as a ${color} ${shape}`);
 			this.initSocket(shape, color, position);
 		} else {
 			console.log(`Player ${this.data.id} joined as a ${color} ${shape}`);
@@ -175,7 +175,7 @@ AFRAME.registerComponent('local-player', {
 			let camera = document.getElementById('camera');
 			let localPlayer = document.createElement('a-entity');
 			localPlayer.setAttribute('player', { id: data.id });
-			localPlayer.setAttribute('is-local', 'yes');
+			localPlayer.setAttribute('local', true);
 			camera.appendChild(localPlayer);
 		});
 	}
