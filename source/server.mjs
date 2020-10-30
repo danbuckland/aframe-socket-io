@@ -20,8 +20,8 @@ app.use('/assets/', express.static(config.output.path + '/assets/'));
 
 // start HTTPS server listening on port 2002
 const server = https.createServer({
-	key: fs.readFileSync('localhost-key.pem'),
-	cert: fs.readFileSync('localhost.pem'),
+	// key: fs.readFileSync('localhost-key.pem'),
+	// cert: fs.readFileSync('localhost.pem'),
 	requestCert: false,
 	rejectUnauthorized: false
 }, app).listen(2002, () => {
