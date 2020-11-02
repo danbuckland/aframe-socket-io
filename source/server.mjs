@@ -18,7 +18,7 @@ const server = app.use(sslRedirect())
 .use(express.static(path.join(path.resolve(), 'public')))
 .set('assets', path.join(path.resolve(), 'public/assets'))
 .get('/', (req, res) => res.render('index.html'))
-.listen(2002, () => console.log(`Listening on ${ 2002 }`))
+.listen(process.env.PORT || 2002, () => console.log(`Listening...`))
 
 // app.use('/assets/', express.static(config.output.path + '/assets/'));
 
