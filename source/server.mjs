@@ -5,15 +5,15 @@ import https from 'https';
 import path from 'path';
 import fs from 'fs';
 import sslRedirect from 'heroku-ssl-redirect';
+import webpack from 'webpack';
+import webpackDevMiddleware from 'webpack-dev-middleware';
+import config from '../webpack.config.js';
 
 const app = express();
 let server;
 
 if (process.env.NODE_ENV === "development") {
-	import webpack from 'webpack';
-	import webpackDevMiddleware from 'webpack-dev-middleware';
-	import config from '../webpack.config.js';
-		
+	
 	const compiler = webpack(config);
 	app.use(webpackDevMiddleware(compiler, { publicPath: config.output.publicPath }));
 	app.use('/assets/', express.static(config.output.path + '/assets/'));
