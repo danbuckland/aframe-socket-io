@@ -13,7 +13,7 @@ const app = express();
 let server;
 
 if (process.env.NODE_ENV === "development") {
-	
+
 	const compiler = webpack(config);
 	app.use(webpackDevMiddleware(compiler, { publicPath: config.output.publicPath }));
 	app.use('/assets/', express.static(config.output.path + '/assets/'));
