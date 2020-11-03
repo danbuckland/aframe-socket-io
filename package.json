@@ -5,8 +5,8 @@
   "main": "app.js",
   "scripts": {
     "build": "webpack",
-    "serve": "nodemon source/server.mjs",
-    "start": "node source/server.mjs"
+    "serve": "NODE_ENV=development nodemon source/server.mjs",
+    "start": "NODE_ENV=production node source/server.mjs"
   },
   "author": "",
   "license": "MIT",

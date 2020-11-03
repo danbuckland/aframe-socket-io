@@ -13,44 +13,49 @@ import config from '../webpack.config.js';
 
 // const compiler = webpack(config);
 const app = express();
+let server;
 
-const server = app.use(sslRedirect())
-.use(express.static(path.join(path.resolve(), 'public')))
-.set('assets', path.join(path.resolve(), 'public/assets'))
-.get('/', (req, res) => res.render('index.html'))
-.listen(process.env.PORT || 2002, () => console.log(`Listening...`))
+if (process.env.NODE_ENV === "development") {
+	const compiler = webpack(config);
+	app.use(webpackDevMiddleware(compiler, {
+		publicPath: config.output.publicPath,
+	}));
 
-// app.use('/assets/', express.static(config.output.path + '/assets/'));
+	app.use('/assets/', express.static(config.output.path + '/assets/'));
 
-// start HTTPS server listening on port 2002
-// TODO: Enable both prod and local environments
-// const server = https.createServer({
-// 	key: fs.readFileSync('localhost-key.pem'),
-// 	cert: fs.readFileSync('localhost.pem'),
-// 	requestCert: false,
-// 	rejectUnauthorized: false
-// }, app).listen(2002, () => {
-// 	console.log('listening on *:2002')
-// });
+	// start HTTPS server listening on port 2002
+	server = https.createServer({
+		key: fs.readFileSync('localhost-key.pem'),
+		cert: fs.readFileSync('localhost.pem'),
+		requestCert: false,
+		rejectUnauthorized: false
+	}, app).listen(2002, () => {
+		console.log('listening on *:2002')
+	});
 
-// const server = https.createServer({
-	
-// }, app).listen(2003, () => {
-// 	console.log('listening on *:2003')
-// });
+	// redirect HTTP traffic to HTTPS
+	http.createServer(function (req, res) {
+		res.writeHead(307, { "Location": "https://" + req.headers['host'] + req.url });
+		res.end();
+	}).listen(80);
 
-// redirect HTTP traffic to HTTPS
-// http.createServer(function (req, res) {
-// 	res.writeHead(307, { "Location": "https://" + req.headers['host'] + req.url });
-// 	res.end();
-// }).listen(80);
+} else if (process.env.NODE_ENV === "production") {
+	console.log('Running in PRODUCTION, this will NOT work locally');
+	server = app.use(sslRedirect())
+		.use(express.static(path.join(path.resolve(), 'public')))
+		.set('assets', path.join(path.resolve(), 'public/assets'))
+		.get('/', (req, res) => res.render('index.html'))
+		.listen(process.env.PORT || 2002, () => console.log(`Listening...`))
+} else {
+	console.log(`Invalid NODE_ENV, please use 'development' or 'production`);
+}
 
 // create io listener
 const io = socketio.listen(server);
 
 // serve index.html when user requests '/'
 app.get('/', function (req, res) {
-	res.sendFile('public/index.html');
+	res.sendFile(config.output.path + '/index.html');
 });
 
 // when a client connects, log it on the server and spawn an object for others
