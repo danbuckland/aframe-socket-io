@@ -1,5 +1,4 @@
 // For use with Node versions 12.4 and above
-
 import express from 'express';
 import socketio from 'socket.io'
 import webpack from 'webpack';
@@ -11,16 +10,12 @@ import sslRedirect from 'heroku-ssl-redirect';
 import webpackDevMiddleware from 'webpack-dev-middleware';
 import config from '../webpack.config.js';
 
-// const compiler = webpack(config);
 const app = express();
 let server;
 
 if (process.env.NODE_ENV === "development") {
 	const compiler = webpack(config);
-	app.use(webpackDevMiddleware(compiler, {
-		publicPath: config.output.publicPath,
-	}));
-
+	app.use(webpackDevMiddleware(compiler, { publicPath: config.output.publicPath }));
 	app.use('/assets/', express.static(config.output.path + '/assets/'));
 
 	// start HTTPS server listening on port 2002
@@ -33,19 +28,14 @@ if (process.env.NODE_ENV === "development") {
 		console.log('listening on *:2002')
 	});
 
-	// redirect HTTP traffic to HTTPS
-	http.createServer(function (req, res) {
-		res.writeHead(307, { "Location": "https://" + req.headers['host'] + req.url });
-		res.end();
-	}).listen(80);
-
 } else if (process.env.NODE_ENV === "production") {
 	console.log('Running in PRODUCTION, this will NOT work locally');
 	server = app.use(sslRedirect())
 		.use(express.static(path.join(path.resolve(), 'public')))
 		.set('assets', path.join(path.resolve(), 'public/assets'))
 		.get('/', (req, res) => res.render('index.html'))
-		.listen(process.env.PORT || 2002, () => console.log(`Listening...`))
+		.listen(process.env.PORT || 2002, () => console.log(`Listening...`));
+
 } else {
 	console.log(`Invalid NODE_ENV, please use 'development' or 'production`);
 }
