@@ -19,7 +19,8 @@
     "socket.io-client": "^2.3.0",
     "three": "^0.121.1",
     "webpack": "^4.44.1",
-    "webpack-cli": "^3.3.11"
+    "webpack-cli": "^3.3.11",
+    "style-loader": "^1.2.1"
   },
   "engines": {
     "node": "14.x",
@@ -31,7 +32,6 @@
     "babel-loader": "^8.1.0",
     "css-loader": "^4.3.0",
     "nodemon": "^2.0.4",
-    "style-loader": "^1.2.1",
     "webpack-dev-middleware": "^3.7.2",
     "webpack-dev-server": "^3.11.0"
   }
