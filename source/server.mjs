@@ -1,19 +1,19 @@
 // For use with Node versions 12.4 and above
 import express from 'express';
 import socketio from 'socket.io'
-import webpack from 'webpack';
-import http from 'http';
 import https from 'https';
 import path from 'path';
 import fs from 'fs';
 import sslRedirect from 'heroku-ssl-redirect';
-import webpackDevMiddleware from 'webpack-dev-middleware';
-import config from '../webpack.config.js';
 
 const app = express();
 let server;
 
 if (process.env.NODE_ENV === "development") {
+	import webpack from 'webpack';
+	import webpackDevMiddleware from 'webpack-dev-middleware';
+	import config from '../webpack.config.js';
+		
 	const compiler = webpack(config);
 	app.use(webpackDevMiddleware(compiler, { publicPath: config.output.publicPath }));
 	app.use('/assets/', express.static(config.output.path + '/assets/'));
