@@ -20,8 +20,8 @@ AFRAME.registerComponent('game', {
 		// });
 
 		// Remove remote players who disconnect
-		// TODO handle local player disconnecting when server restarts
-		// TODO consider calculating this from remoteData instead of discrete event
+		// TODO: handle local player disconnecting when server restarts
+		// TODO: consider calculating this from remoteData instead of discrete event
 		socket.on('deletePlayer', function (data) {
 			// let disconnectedPlayer = document.getElementById(data.id);
 			console.log(`Player ${data.id} disconnected`);
@@ -52,16 +52,14 @@ AFRAME.registerComponent('game', {
 						id: data.id,
 						shape: data.shape,
 						color: data.color,
-						x: data.x,
-						y: data.y,
-						z: data.z
+						position: data.position
 					});
 					scene.appendChild(remotePlayer);
 					localIds.push(data.id);
 				} else if (document.getElementById(data.id)) {
 					// Update remote player position if it does exist
 					let remotePlayer = document.getElementById(data.id);
-					remotePlayer.object3D.position.set(data.x, data.y, data.z);
+					remotePlayer.object3D.position.copy(data.position);
 					remotePlayer.object3D.quaternion.set(data.rx, data.ry, data.rz, data.rw);
 				}
 			}
@@ -89,11 +87,8 @@ AFRAME.registerComponent('game', {
 			localPlayerElement.object3D.getWorldQuaternion(quaternion);
 		}
 
-		// TODO: Send positional data as Vector3
 		socket.emit('update', {
-			x: position.x,
-			y: position.y,
-			z: position.z,
+			position: position,
 			rx: quaternion.x,
 			ry: quaternion.y,
 			rz: quaternion.z,
@@ -112,10 +107,8 @@ AFRAME.registerComponent('player', {
 	schema: {
 		color: { type: 'color' },
 		shape: { type: 'string' },
+		position: { type: 'vec3', default: { x: 0, y: 0, z: -1.3 } },
 		id: { type: 'string' },
-		x: { type: 'number' },
-		y: { type: 'number' },
-		z: { type: 'number' }
 	},
 
 	init: function () {
@@ -125,13 +118,12 @@ AFRAME.registerComponent('player', {
 		let color = this.data.color;
 		let shape = this.data.shape;
 		let local = !shape;
-		let position = new THREE.Vector3(this.data.x, this.data.y + 1.6, this.data.z); // account for head height
+		let position = this.data.position;
 		
 		// if player component is local, set some values for the player
 		if (local) {
 			color = colors[Math.floor(Math.random() * colors.length)];
 			shape = shapes[Math.floor(Math.random() * shapes.length)];
-			position = new THREE.Vector3(0, 0, -1.3);
 		}
 		
 		// create the 3d model of the player 
@@ -155,9 +147,7 @@ AFRAME.registerComponent('player', {
 			shape: shape,
 			color: color,
 			id: this.data.id,
-			x: position.x,
-			y: position.y,
-			z: position.z
+			position: position
 		});
 	}
 });

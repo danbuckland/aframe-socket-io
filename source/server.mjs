@@ -12,6 +12,7 @@ import config from '../webpack.config.js';
 const app = express();
 let server;
 
+// TODO: separate socket code from server creation code
 if (process.env.NODE_ENV === "development") {
 
 	const compiler = webpack(config);
@@ -51,7 +52,7 @@ app.get('/', function (req, res) {
 // when a client connects, log it on the server and spawn an object for others
 io.on('connection', function (socket) {
 	// define custom user data for position and direction
-	socket.userData = { x: 0, y: 0, z: 0, rx: 0, ry: 0, rz: 0, rw: 1 };
+	socket.userData = { position: { x: 0, y: 0, z: 0 }, rx: 0, ry: 0, rz: 0, rw: 1 };
 	console.log(`${socket.id} connected`);
 	// emit the socket id to connected clients
 	socket.emit('setId', { id: socket.id });
@@ -66,9 +67,7 @@ io.on('connection', function (socket) {
 	socket.on('init', function (data) {
 		socket.userData.shape = data.shape;
 		socket.userData.color = data.color;
-		socket.userData.x = data.x;
-		socket.userData.y = data.y;
-		socket.userData.z = data.z;
+		socket.userData.position = data.position;
 		socket.userData.rx = data.rx;
 		socket.userData.ry = data.ry;
 		socket.userData.rz = data.rz;
@@ -77,9 +76,7 @@ io.on('connection', function (socket) {
 
 	// update user data that changes frame to frame
 	socket.on('update', function (data) {
-		socket.userData.x = data.x;
-		socket.userData.y = data.y;
-		socket.userData.z = data.z;
+		socket.userData.position = data.position;
 		socket.userData.rx = data.rx;
 		socket.userData.ry = data.ry;
 		socket.userData.rz = data.rz;
@@ -99,15 +96,13 @@ setInterval(function () {
 				id: socket.id,
 				shape: socket.userData.shape,
 				color: socket.userData.color,
-				x: socket.userData.x,
-				y: socket.userData.y,
-				z: socket.userData.z,
+				position: socket.userData.position,
 				rx: socket.userData.rx,
 				ry: socket.userData.ry,
 				rz: socket.userData.rz,
 				rw: socket.userData.rw
 			});
-		}
+		};
 	}
 	// send remote data array 'pack' to all clients
 	if (pack.length > 0) io.emit('remoteData', pack);
