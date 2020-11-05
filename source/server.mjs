@@ -106,4 +106,4 @@ setInterval(function () {
 	}
 	// send remote data array 'pack' to all clients
 	if (pack.length > 0) io.emit('remoteData', pack);
-}, 50);
+}, 10);
