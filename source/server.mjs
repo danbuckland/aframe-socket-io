@@ -11,13 +11,14 @@ import config from '../webpack.config.js';
 
 const app = express();
 let server;
+let webpackConfig = config();
 
 // TODO: separate socket code from server creation code
 if (process.env.NODE_ENV === "development") {
 
-	const compiler = webpack(config);
-	app.use(webpackDevMiddleware(compiler, { publicPath: config.output.publicPath }));
-	app.use('/assets/', express.static(config.output.path + '/assets/'));
+	const compiler = webpack(webpackConfig);
+	app.use(webpackDevMiddleware(compiler, { publicPath: webpackConfig.output.publicPath }));
+	app.use('/assets/', express.static(webpackConfig.output.path + '/assets/'));
 
 	// start HTTPS server listening on port 2002
 	server = https.createServer({
@@ -46,7 +47,7 @@ const io = socketio.listen(server);
 
 // serve index.html when user requests '/'
 app.get('/', function (req, res) {
-	res.sendFile(config.output.path + '/index.html');
+	res.sendFile(webpackConfig.output.path + '/index.html');
 });
 
 // when a client connects, log it on the server and spawn an object for others

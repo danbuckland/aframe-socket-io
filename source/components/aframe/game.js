@@ -115,10 +115,14 @@ AFRAME.registerComponent('game', {
 
 });
 
+AFRAME.registerPrimitive('a-player', {
+
+});
+
 // builds the player model itself
 AFRAME.registerComponent('player', {
 
-	// TODO: Consider creating an 'a-player' primitive
+	// TODO: Consider creating an 'a-player' primitive https://aframe.io/docs/1.0.0/introduction/html-and-primitives.html#registering-a-primitive
 	// TODO: Add separate collision geometry to prevent players intersecting
 	multiple: true,
 
@@ -153,7 +157,7 @@ AFRAME.registerComponent('player', {
 
 		// emit 'init' event to share info about the player if player is local
 		if (local) {
-			console.log(`You ${localPlayerId} joined as a ${color} ${shape}`);
+			console.log(`Local player ${localPlayerId} joined as a ${color} ${shape}`);
 			this.initSocket(shape, color, position);
 		} else {
 			console.log(`Player ${this.data.id} joined as a ${color} ${shape}`);
