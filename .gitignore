@@ -3,3 +3,5 @@ yarn-error.log
 node_modules/
 *.pem
 references/
+public/bundle.js
+public/bundle.js.map
