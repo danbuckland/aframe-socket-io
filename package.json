@@ -16,10 +16,11 @@
     "aframe": "^1.0.4",
     "express": "^4.17.1",
     "heroku-ssl-redirect": "0.0.4",
-    "jquery": "^3.5.1",
     "socket.io": "^2.3.0",
     "socket.io-client": "^2.3.0",
-    "three": "^0.121.1"
+    "three": "^0.121.1",
+    "webpack": "^4.44.1",
+    "webpack-dev-middleware": "^3.7.2"
   },
   "engines": {
     "node": "14.x",
@@ -32,9 +33,7 @@
     "css-loader": "^4.3.0",
     "nodemon": "^2.0.4",
     "style-loader": "^1.2.1",
-    "webpack": "^4.44.1",
     "webpack-cli": "^3.3.11",
-    "webpack-dev-middleware": "^3.7.2",
     "webpack-dev-server": "^3.11.0"
   }
 }

@@ -7,8 +7,8 @@ module.exports = (env) => {
     mode: 'none',
     entry: './source/app.js',
     output: {
-      path: path.join(__dirname, 'public'),
-      publicPath: '/',
+      path: path.join(__dirname, 'public', 'dist'),
+      publicPath: '/dist/',
       filename: 'bundle.js'
     },
     module: {

@@ -22,7 +22,7 @@ let webpackConfig = config();
 if (process.env.NODE_ENV === "development") {
 
 	const compiler = webpack(webpackConfig);
-	app.use(webpackDevMiddleware(compiler, publicPath));
+	app.use(webpackDevMiddleware(compiler, { publicPath: webpackConfig.output.publicPath }));
 	app.use('/assets/', express.static(publicPath + '/assets/'));
 
 	// start HTTPS server listening on port 2002
