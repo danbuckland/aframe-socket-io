@@ -7,8 +7,8 @@
     "build:dev": "webpack --env dev",
     "build:prod": "webpack -p --env production",
     "heroku-postbuild": "",
-    "serve": "NODE_ENV=development nodemon source/server.mjs",
-    "start": "NODE_ENV=production node source/server.mjs"
+    "serve": "NODE_ENV=development nodemon source/server/server.mjs",
+    "start": "NODE_ENV=production node source/server/server.mjs"
   },
   "author": "",
   "license": "MIT",

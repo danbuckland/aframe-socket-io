@@ -3,13 +3,17 @@ import express from 'express';
 import socketio from 'socket.io'
 import https from 'https';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import fs from 'fs';
 import sslRedirect from 'heroku-ssl-redirect';
 import webpack from 'webpack';
 import webpackDevMiddleware from 'webpack-dev-middleware';
-import config from '../webpack.config.js';
+import config from '../../webpack.config.js';
 
 const app = express();
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const publicPath = path.join(__dirname, '..', '..', 'public');
+
 let server;
 let webpackConfig = config();
 
@@ -17,8 +21,8 @@ let webpackConfig = config();
 if (process.env.NODE_ENV === "development") {
 
 	const compiler = webpack(webpackConfig);
-	app.use(webpackDevMiddleware(compiler, { publicPath: webpackConfig.output.publicPath }));
-	app.use('/assets/', express.static(webpackConfig.output.path + '/assets/'));
+	app.use(webpackDevMiddleware(compiler, publicPath));
+	app.use('/assets/', express.static(publicPath + '/assets/'));
 
 	// start HTTPS server listening on port 2002
 	server = https.createServer({
@@ -33,11 +37,10 @@ if (process.env.NODE_ENV === "development") {
 } else if (process.env.NODE_ENV === "production") {
 	console.log('Running in PRODUCTION, this will NOT work locally');
 	server = app.use(sslRedirect())
-		.use(express.static(path.join(path.resolve(), 'public')))
-		.set('assets', path.join(path.resolve(), 'public/assets'))
-		.get('/', (req, res) => res.render('index.html'))
+		.use(express.static(publicPath))
+		.set('assets', path.join(publicPath, 'assets'))
+		.get('/', (req, res) => res.sendFile(path.join(publicPath, 'index.html')))
 		.listen(process.env.PORT || 2002, () => console.log(`Listening...`));
-
 } else {
 	console.log(`Invalid NODE_ENV, please use 'development' or 'production`);
 }
@@ -47,7 +50,7 @@ const io = socketio.listen(server);
 
 // serve index.html when user requests '/'
 app.get('/', function (req, res) {
-	res.sendFile(webpackConfig.output.path + '/index.html');
+	res.sendFile(publicPath + '/index.html');
 });
 
 // when a client connects, log it on the server and spawn an object for others
