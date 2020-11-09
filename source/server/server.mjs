@@ -13,6 +13,7 @@ import config from '../../webpack.config.js';
 const app = express();
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const publicPath = path.join(__dirname, '..', '..', 'public');
+const port = process.env.PORT || 2002;
 
 let server;
 let webpackConfig = config();
@@ -30,7 +31,7 @@ if (process.env.NODE_ENV === "development") {
 		cert: fs.readFileSync('localhost.pem'),
 		requestCert: false,
 		rejectUnauthorized: false
-	}, app).listen(2002, () => {
+	}, app).listen(port, () => {
 		console.log('listening on *:2002')
 	});
 
@@ -40,7 +41,7 @@ if (process.env.NODE_ENV === "development") {
 		.use(express.static(publicPath))
 		.set('assets', path.join(publicPath, 'assets'))
 		.get('/', (req, res) => res.sendFile(path.join(publicPath, 'index.html')))
-		.listen(process.env.PORT || 2002, () => console.log(`Listening...`));
+		.listen(port, () => console.log(`Listening...`));
 } else {
 	console.log(`Invalid NODE_ENV, please use 'development' or 'production`);
 }

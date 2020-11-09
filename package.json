@@ -6,7 +6,7 @@
   "scripts": {
     "build:dev": "webpack --env dev",
     "build:prod": "webpack -p --env production",
-    "heroku-postbuild": "",
+    "heroku-postbuild": "yarn run build:prod",
     "serve": "NODE_ENV=development nodemon source/server/server.mjs",
     "start": "NODE_ENV=production node source/server/server.mjs"
   },
