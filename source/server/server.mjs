@@ -15,7 +15,6 @@ if (process.env.NODE_ENV !== "production") {
 	console.log(`Invalid NODE_ENV, please use 'production'`);
 }
 
-// TODO: separate socket code from server creation code
 console.log('Running in PRODUCTION, this will NOT work locally');
 let server = app.use(sslRedirect())
 	.use(express.static(publicPath))
@@ -33,7 +32,8 @@ app.get('/', function (req, res) {
 
 sockets(io);
 
-// called 20 times a second on the server side
+// TODO: consider separating this into it's own file with interval as an argument
+// called 100 times a second on the server side
 setInterval(function () {
 	const nsp = io.of('/');
 	let pack = [];

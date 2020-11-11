@@ -17,7 +17,6 @@ const port = process.env.PORT || 2002;
 
 let webpackConfig = config();
 
-// TODO: separate socket code from server creation code
 const compiler = webpack(webpackConfig);
 app.use(webpackDevMiddleware(compiler, { publicPath: webpackConfig.output.publicPath }));
 app.use('/assets/', express.static(publicPath + '/assets/'));
@@ -42,7 +41,7 @@ app.get('/', function (req, res) {
 
 sockets(io);
 
-// called 20 times a second on the server side
+// called 100 times a second on the server side
 setInterval(function () {
 	const nsp = io.of('/');
 	let pack = [];
