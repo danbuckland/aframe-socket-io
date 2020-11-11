@@ -7,7 +7,7 @@
     "build:dev": "webpack --env dev",
     "build:prod": "webpack -p --env production",
     "heroku-postbuild": "yarn run build:prod",
-    "serve": "NODE_ENV=development nodemon source/server/server.mjs",
+    "serve": "NODE_ENV=development nodemon source/server/dev-server.mjs",
     "start": "NODE_ENV=production node source/server/server.mjs"
   },
   "author": "",

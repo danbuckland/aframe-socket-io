@@ -1,9 +1,13 @@
 // For use with Node versions 12.4 and above
 import express from 'express';
 import socketio from 'socket.io'
+import https from 'https';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import sslRedirect from 'heroku-ssl-redirect';
+import fs from 'fs';
+import webpack from 'webpack';
+import webpackDevMiddleware from 'webpack-dev-middleware';
+import config from '../../webpack.config.js';
 import sockets from './sockets.js';
 
 const app = express();
@@ -11,17 +15,22 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const publicPath = path.join(__dirname, '..', '..', 'public');
 const port = process.env.PORT || 2002;
 
-if (process.env.NODE_ENV !== "production") {
-	console.log(`Invalid NODE_ENV, please use 'production'`);
-}
+let webpackConfig = config();
 
 // TODO: separate socket code from server creation code
-console.log('Running in PRODUCTION, this will NOT work locally');
-let server = app.use(sslRedirect())
-	.use(express.static(publicPath))
-	.set('assets', path.join(publicPath, 'assets'))
-	.get('/', (req, res) => res.sendFile(path.join(publicPath, 'index.html')))
-	.listen(port, () => console.log(`Listening...`));
+const compiler = webpack(webpackConfig);
+app.use(webpackDevMiddleware(compiler, { publicPath: webpackConfig.output.publicPath }));
+app.use('/assets/', express.static(publicPath + '/assets/'));
+
+// start HTTPS server listening on port 2002
+let server = https.createServer({
+	key: fs.readFileSync('localhost-key.pem'),
+	cert: fs.readFileSync('localhost.pem'),
+	requestCert: false,
+	rejectUnauthorized: false
+}, app).listen(port, () => {
+	console.log('listening on *:2002')
+});
 
 // create io listener
 const io = socketio.listen(server);
