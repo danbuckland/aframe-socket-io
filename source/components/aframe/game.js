@@ -52,13 +52,11 @@ AFRAME.registerComponent('game', {
 						// Append player to scene if remote player does not exist
 						// TODO: Check for race conditions and consider implementing concept of initialising players
 						// TODO: Add a create remote player function or constructor
-						let remotePlayer = document.createElement('a-entity');
-						remotePlayer.setAttribute('player', {
-							id: data.id,
-							shape: data.shape,
-							color: data.color,
-							position: data.position
-						});
+						let remotePlayer = document.createElement('a-player');
+						remotePlayer.setAttribute('id', data.id);
+						remotePlayer.setAttribute('shape', data.shape);
+						remotePlayer.setAttribute('color', data.color);
+						remotePlayer.setAttribute('position', data.position);
 						scene.appendChild(remotePlayer);
 						localIds.push(data.id);
 					} else if (document.getElementById(data.id)) {
@@ -116,7 +114,15 @@ AFRAME.registerComponent('game', {
 });
 
 AFRAME.registerPrimitive('a-player', {
-
+	defaultComponents: {
+		player: {}
+	}, 
+	
+	mappings: {
+		id: 'player.id',
+		shape: 'player.shape',
+		color: 'player.color'
+	}
 });
 
 // builds the player model itself
@@ -185,8 +191,8 @@ AFRAME.registerComponent('local-player', {
 			localPlayerId = data.id;
 			localIds.push(data.id);
 			let camera = document.getElementById('camera');
-			let localPlayer = document.createElement('a-entity');
-			localPlayer.setAttribute('player', { id: data.id });
+			let localPlayer = document.createElement('a-player');
+			localPlayer.setAttribute('id', data.id);
 			localPlayer.setAttribute('local', true);
 			camera.appendChild(localPlayer);
 		});
