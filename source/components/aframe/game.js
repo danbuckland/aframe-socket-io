@@ -40,7 +40,7 @@ AFRAME.registerComponent('game', {
 		if (remoteData === undefined || remoteData.length == 0 || localPlayerId === undefined) { return };
 
 		this.updatePlayersInScene();
-		this.removeLocalOrphans();
+		this.removeLocalDisconnects();
 		this.updateLocalPlayerOnServer();
 	},
 
@@ -70,17 +70,17 @@ AFRAME.registerComponent('game', {
 		}
 	})(),
 
-	removeLocalOrphans: (function () {
+	removeLocalDisconnects: (function () {
 		return function () {
 			// After creating any missing remote player locally, delete local player not on the remote
 			let remoteIds = remoteData.map(player => player.id);
 			if (JSON.stringify(remoteIds.sort()) !== JSON.stringify(localIds.sort())) { // discrepancy exists
-				let orphanedIds = localIds.filter(x => !remoteIds.includes(x));
-				orphanedIds.forEach(function (id) {
+				let disconnectedIds = localIds.filter(x => !remoteIds.includes(x));
+				disconnectedIds.forEach(function (id) {
 					if (id != localPlayerId) {
-						console.log(`Deleting orphan ${id}`);
-						let orphanedElement = document.getElementById(id);
-						orphanedElement.parentNode.removeChild(orphanedElement);
+						console.log(`Deleting already disconnected ${id}`);
+						let disconnectedEntity = document.getElementById(id);
+						disconnectedEntity.parentNode.removeChild(disconnectedEntity);
 						let i = localIds.indexOf(id);
 						localIds.splice(i, i + 1);
 					}
