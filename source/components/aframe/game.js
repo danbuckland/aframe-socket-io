@@ -1,43 +1,22 @@
 import * as io from 'socket.io-client';
-let socket;
-let localPlayerId;
 const localIds = [];
 let remoteData = [];
 let scene;
 
 // TODO: Consider turning game into a system https://aframe.io/docs/1.0.0/core/systems.html
-AFRAME.registerComponent('game', {
+AFRAME.registerSystem('game', {
+
+	schema: {
+		localPlayerId: { type: 'string' }
+	},
 
 	init: function () {
-		// append new local-player component to scene
-		scene = this.el.sceneEl;
-		scene.setAttribute('local-player', '');
-
-		socket.on('remoteData', function (data) { remoteData = data });
-
-		// socket.on('reconnect', function (data) {
-		// 	socket.emit('clientReconnected', localPlayerId);
-		// 	// delete local-player object
-		// 	// 
-		// });
-
-		// Remove remote players who disconnect
-		// TODO: handle local player disconnecting when server restarts
-		// TODO: consider calculating this from remoteData instead of discrete event
-		socket.on('deletePlayer', function (data) {
-			// let disconnectedPlayer = document.getElementById(data.id);
-			console.log(`Player ${data.id} disconnected`);
-			// TODO: Add this nice disconnect visual back in later
-			// if (disconnectedPlayer) {
-			// 	disconnectedPlayer.setAttribute('destroyer', { ttl: 3 });
-			// 	disconnectedPlayer.setAttribute('dynamic-body', { shape: 'box', mass: 2, angularDamping: 0.5, linearDamping: 0.9 });
-			// }
-		});
+		this.socket = io();
 	},
 
 	tick: function (t, dt) {
 		// Return if there are no remote players
-		if (remoteData === undefined || remoteData.length == 0 || localPlayerId === undefined) { return };
+		if (remoteData === undefined || remoteData.length == 0 || this.data.localPlayerId === undefined) { return };
 
 		this.updatePlayersInScene();
 		this.removeLocalDisconnects();
@@ -47,11 +26,11 @@ AFRAME.registerComponent('game', {
 	updatePlayersInScene: (function () {
 		return function () {
 			remoteData.forEach(function (data) {
-				if (localPlayerId != data.id) {
+				if (scene.systems.game.data.localPlayerId != data.id) {
 					if (!document.getElementById(data.id)) {
 						// Append player to scene if remote player does not exist
 						// TODO: Check for race conditions and consider implementing concept of initialising players
-						// TODO: Add a create remote player function or constructor
+						// TODO: Add a create remote player function or constructor (possibly with self.functionName)
 						let remotePlayer = document.createElement('a-player');
 						remotePlayer.setAttribute('id', data.id);
 						remotePlayer.setAttribute('shape', data.shape);
@@ -77,7 +56,7 @@ AFRAME.registerComponent('game', {
 			if (JSON.stringify(remoteIds.sort()) !== JSON.stringify(localIds.sort())) { // discrepancy exists
 				let disconnectedIds = localIds.filter(x => !remoteIds.includes(x));
 				disconnectedIds.forEach(function (id) {
-					if (id != localPlayerId) {
+					if (id != scene.systems.game.data.localPlayerId) {
 						console.log(`Deleting already disconnected ${id}`);
 						let disconnectedEntity = document.getElementById(id);
 						disconnectedEntity.parentNode.removeChild(disconnectedEntity);
@@ -95,13 +74,13 @@ AFRAME.registerComponent('game', {
 		let quaternion = new THREE.Quaternion();
 
 		return function () {
-			let localPlayerElement = document.getElementById(localPlayerId);
+			let localPlayerElement = document.getElementById(scene.systems.game.data.localPlayerId);
 			if (localPlayerElement) {
 				localPlayerElement.object3D.getWorldPosition(position);
 				localPlayerElement.object3D.getWorldQuaternion(quaternion);
 			}
 
-			socket.emit('update', {
+			this.socket.emit('update', {
 				position: position,
 				rx: quaternion.x,
 				ry: quaternion.y,
@@ -112,6 +91,31 @@ AFRAME.registerComponent('game', {
 	})()
 
 });
+
+AFRAME.registerComponent('game', {
+	init: function () {
+		// append new local-player component to scene
+		scene = this.el.sceneEl;
+		scene.setAttribute('local-player', '');
+
+		this.system.socket.on('remoteData', function (data) { remoteData = data });
+
+		// Remove remote players who disconnect
+		// TODO: handle local player disconnecting when server restarts
+		// TODO: consider calculating this from remoteData instead of discrete event
+		this.system.socket.on('deletePlayer', function (data) {
+			// let disconnectedPlayer = document.getElementById(data.id);
+			console.log(`Player ${data.id} disconnected`);
+			// TODO: Add this nice disconnect visual back in later
+			// if (disconnectedPlayer) {
+			// 	disconnectedPlayer.setAttribute('destroyer', { ttl: 3 });
+			// 	disconnectedPlayer.setAttribute('dynamic-body', { shape: 'box', mass: 2, angularDamping: 0.5, linearDamping: 0.9 });
+			// }
+		});
+
+		
+	}
+})
 
 AFRAME.registerPrimitive('a-player', {
 	// https://aframe.io/docs/1.0.0/introduction/html-and-primitives.html#registering-a-primitive
@@ -147,6 +151,8 @@ AFRAME.registerComponent('player', {
 		let shape = this.data.shape;
 		let local = !shape;
 		let position = this.data.position;
+		this.system = this.el.sceneEl.systems.game;
+		let game = this.system;
 
 		// if player component is local, set some values for the player
 		if (local) {
@@ -163,7 +169,7 @@ AFRAME.registerComponent('player', {
 
 		// emit 'init' event to share info about the player if player is local
 		if (local) {
-			console.log(`Local player ${localPlayerId} joined as a ${color} ${shape}`);
+			console.log(`Local player ${game.data.localPlayerId} joined as a ${color} ${shape}`);
 			this.initSocket(shape, color, position);
 		} else {
 			console.log(`Player ${this.data.id} joined as a ${color} ${shape}`);
@@ -171,7 +177,7 @@ AFRAME.registerComponent('player', {
 	},
 
 	initSocket: function (shape, color, position) {
-		socket.emit('init', {
+		this.system.socket.emit('init', {
 			shape: shape,
 			color: color,
 			id: this.data.id,
@@ -185,10 +191,11 @@ AFRAME.registerComponent('local-player', {
 	multiple: false,
 
 	init: function () {
-		socket = io();
+		this.system = this.el.sceneEl.systems.game;
+		let game = this.system;
 
-		socket.on('setId', function (data) {
-			localPlayerId = data.id;
+		game.socket.on('setId', function (data) {
+			game.data.localPlayerId = data.id;
 			localIds.push(data.id);
 			let camera = document.getElementById('camera');
 			let localPlayer = document.createElement('a-player');
