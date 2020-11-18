@@ -11,6 +11,21 @@ AFRAME.registerSystem('game', {
 
 	init: function () {
 		this.socket = io();
+
+		this.socket.on('remoteData', function (data) { remoteData = data });
+
+		// Remove remote players who disconnect
+		// TODO: handle local player disconnecting when server restarts
+		// TODO: consider calculating this from remoteData instead of discrete event
+		this.socket.on('deletePlayer', function (data) {
+			// let disconnectedPlayer = document.getElementById(data.id);
+			console.log(`Player ${data.id} disconnected`);
+			// TODO: Add this nice disconnect visual back in later
+			// if (disconnectedPlayer) {
+			// 	disconnectedPlayer.setAttribute('destroyer', { ttl: 3 });
+			// 	disconnectedPlayer.setAttribute('dynamic-body', { shape: 'box', mass: 2, angularDamping: 0.5, linearDamping: 0.9 });
+			// }
+		});
 	},
 
 	tick: function (t, dt) {
@@ -94,27 +109,6 @@ AFRAME.registerSystem('game', {
 	})()
 
 });
-
-AFRAME.registerComponent('game', {
-	init: function () {
-		this.system.socket.on('remoteData', function (data) { remoteData = data });
-
-		// Remove remote players who disconnect
-		// TODO: handle local player disconnecting when server restarts
-		// TODO: consider calculating this from remoteData instead of discrete event
-		this.system.socket.on('deletePlayer', function (data) {
-			// let disconnectedPlayer = document.getElementById(data.id);
-			console.log(`Player ${data.id} disconnected`);
-			// TODO: Add this nice disconnect visual back in later
-			// if (disconnectedPlayer) {
-			// 	disconnectedPlayer.setAttribute('destroyer', { ttl: 3 });
-			// 	disconnectedPlayer.setAttribute('dynamic-body', { shape: 'box', mass: 2, angularDamping: 0.5, linearDamping: 0.9 });
-			// }
-		});
-
-		
-	}
-})
 
 AFRAME.registerPrimitive('a-player', {
 	// https://aframe.io/docs/1.0.0/introduction/html-and-primitives.html#registering-a-primitive
