@@ -4,13 +4,13 @@ let remoteData = [];
 
 // TODO: Consider turning game into a system https://aframe.io/docs/1.0.0/core/systems.html
 AFRAME.registerSystem('game', {
-
 	schema: {
 		localPlayerId: { type: 'string' }
 	},
 
 	init: function () {
 		this.socket = io();
+		this.el.sceneEl.setAttribute('local-player', '');
 
 		this.socket.on('remoteData', function (data) { remoteData = data });
 
