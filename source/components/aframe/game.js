@@ -1,7 +1,6 @@
 import * as io from 'socket.io-client';
 const localIds = [];
 let remoteData = [];
-let scene;
 
 // TODO: Consider turning game into a system https://aframe.io/docs/1.0.0/core/systems.html
 AFRAME.registerSystem('game', {
@@ -18,15 +17,16 @@ AFRAME.registerSystem('game', {
 		// Return if there are no remote players
 		if (remoteData === undefined || remoteData.length == 0 || this.data.localPlayerId === undefined) { return };
 
-		this.updatePlayersInScene();
-		this.removeLocalDisconnects();
-		this.updateLocalPlayerOnServer();
+		this.updatePlayersInScene(this.data.localPlayerId, this.el.sceneEl);
+		this.removeLocalDisconnects(this.data.localPlayerId);
+		this.updateLocalPlayerOnServer(this.data.localPlayerId);
 	},
 
 	updatePlayersInScene: (function () {
-		return function () {
+		return function (localPlayerId, scene) {
+			if (!localPlayerId) { return };
 			remoteData.forEach(function (data) {
-				if (scene.systems.game.data.localPlayerId != data.id) {
+				if (localPlayerId != data.id) {
 					if (!document.getElementById(data.id)) {
 						// Append player to scene if remote player does not exist
 						// TODO: Check for race conditions and consider implementing concept of initialising players
@@ -50,13 +50,15 @@ AFRAME.registerSystem('game', {
 	})(),
 
 	removeLocalDisconnects: (function () {
-		return function () {
+		return function (localPlayerId) {
+			if (!localPlayerId) { return };
 			// After creating any missing remote player locally, delete local player not on the remote
 			let remoteIds = remoteData.map(player => player.id);
 			if (JSON.stringify(remoteIds.sort()) !== JSON.stringify(localIds.sort())) { // discrepancy exists
 				let disconnectedIds = localIds.filter(x => !remoteIds.includes(x));
 				disconnectedIds.forEach(function (id) {
-					if (id != scene.systems.game.data.localPlayerId) {
+					if (id !== localPlayerId) {
+						console.log(`${id} is not the same as ${localPlayerId}`);
 						console.log(`Deleting already disconnected ${id}`);
 						let disconnectedEntity = document.getElementById(id);
 						disconnectedEntity.parentNode.removeChild(disconnectedEntity);
@@ -73,8 +75,9 @@ AFRAME.registerSystem('game', {
 		let position = new THREE.Vector3();
 		let quaternion = new THREE.Quaternion();
 
-		return function () {
-			let localPlayerElement = document.getElementById(scene.systems.game.data.localPlayerId);
+		return function (localPlayerId) {
+			if (!localPlayerId) { return };
+			let localPlayerElement = document.getElementById(localPlayerId);
 			if (localPlayerElement) {
 				localPlayerElement.object3D.getWorldPosition(position);
 				localPlayerElement.object3D.getWorldQuaternion(quaternion);
@@ -94,10 +97,6 @@ AFRAME.registerSystem('game', {
 
 AFRAME.registerComponent('game', {
 	init: function () {
-		// append new local-player component to scene
-		scene = this.el.sceneEl;
-		scene.setAttribute('local-player', '');
-
 		this.system.socket.on('remoteData', function (data) { remoteData = data });
 
 		// Remove remote players who disconnect
