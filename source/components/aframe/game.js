@@ -179,11 +179,13 @@ AFRAME.registerComponent('player', {
 	}
 });
 
-// gets called first when the user connects and creates the socket
+// is created when the game is first initialised
 AFRAME.registerComponent('local-player', {
 	multiple: false,
 
 	init: function () {
+		console.log('local-player init');
+		// TODO: Fix bug with local-player not appearing unless window is active on load
 		this.system = this.el.sceneEl.systems.game;
 		let game = this.system;
 
@@ -191,6 +193,7 @@ AFRAME.registerComponent('local-player', {
 			game.data.localPlayerId = data.id;
 			localIds.push(data.id);
 			let camera = document.getElementById('camera');
+			console.log(camera);
 			let localPlayer = document.createElement('a-player');
 			localPlayer.setAttribute('id', data.id);
 			localPlayer.setAttribute('local', true);
