@@ -1,4 +1,6 @@
 import * as io from 'socket.io-client';
+// TODO: Move these to system variables
+// TODO: Separate components out into separate files
 const localIds = [];
 let remoteData = [];
 
@@ -193,7 +195,6 @@ AFRAME.registerComponent('local-player', {
 			game.data.localPlayerId = data.id;
 			localIds.push(data.id);
 			let camera = document.getElementById('camera');
-			console.log(camera);
 			let localPlayer = document.createElement('a-player');
 			localPlayer.setAttribute('id', data.id);
 			localPlayer.setAttribute('local', true);
