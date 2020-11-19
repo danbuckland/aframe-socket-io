@@ -12,7 +12,17 @@ AFRAME.registerSystem('game', {
 
 	init: function () {
 		this.socket = io();
-		this.el.sceneEl.setAttribute('local-player', '');
+
+		this.socket.on('connect', () => {
+			this.data.localPlayerId = this.socket.id; 
+			console.log(this.socket.id);
+			localIds.push(this.socket.id);
+			let camera = document.getElementById('camera');
+			let localPlayer = document.createElement('a-player');
+			localPlayer.setAttribute('id', this.socket.id);
+			localPlayer.setAttribute('local', true);
+			camera.appendChild(localPlayer);
+		});
 
 		this.socket.on('remoteData', function (data) { remoteData = data });
 
@@ -28,6 +38,8 @@ AFRAME.registerSystem('game', {
 			// 	disconnectedPlayer.setAttribute('dynamic-body', { shape: 'box', mass: 2, angularDamping: 0.5, linearDamping: 0.9 });
 			// }
 		});
+
+		console.log('system init');
 	},
 
 	tick: function (t, dt) {
@@ -177,28 +189,6 @@ AFRAME.registerComponent('player', {
 			color: color,
 			id: this.data.id,
 			position: position
-		});
-	}
-});
-
-// is created when the game is first initialised
-AFRAME.registerComponent('local-player', {
-	multiple: false,
-
-	init: function () {
-		console.log('local-player init');
-		// TODO: Fix bug with local-player not appearing unless window is active on load
-		this.system = this.el.sceneEl.systems.game;
-		let game = this.system;
-
-		game.socket.on('setId', function (data) {
-			game.data.localPlayerId = data.id;
-			localIds.push(data.id);
-			let camera = document.getElementById('camera');
-			let localPlayer = document.createElement('a-player');
-			localPlayer.setAttribute('id', data.id);
-			localPlayer.setAttribute('local', true);
-			camera.appendChild(localPlayer);
 		});
 	}
 });
