@@ -15,7 +15,6 @@ AFRAME.registerSystem('game', {
 
 		this.socket.on('connect', () => {
 			this.data.localPlayerId = this.socket.id; 
-			console.log(this.socket.id);
 			localIds.push(this.socket.id);
 			let camera = document.getElementById('camera');
 			let localPlayer = document.createElement('a-player');
@@ -38,8 +37,6 @@ AFRAME.registerSystem('game', {
 			// 	disconnectedPlayer.setAttribute('dynamic-body', { shape: 'box', mass: 2, angularDamping: 0.5, linearDamping: 0.9 });
 			// }
 		});
-
-		console.log('system init');
 	},
 
 	tick: function (t, dt) {
@@ -87,7 +84,6 @@ AFRAME.registerSystem('game', {
 				let disconnectedIds = localIds.filter(x => !remoteIds.includes(x));
 				disconnectedIds.forEach(function (id) {
 					if (id !== localPlayerId) {
-						console.log(`${id} is not the same as ${localPlayerId}`);
 						console.log(`Deleting already disconnected ${id}`);
 						let disconnectedEntity = document.getElementById(id);
 						disconnectedEntity.parentNode.removeChild(disconnectedEntity);
