@@ -12,6 +12,8 @@ AFRAME.registerSystem('game', {
 	init: function () {
 		this.socket = io();
 
+		this.throttledFunction = AFRAME.utils.throttle(this.everySecond, 1000, this);
+
 		this.socket.on('connect', () => {
 			this.data.localPlayerId = this.socket.id;
 			this.data.localIds.push(this.socket.id);
@@ -38,12 +40,16 @@ AFRAME.registerSystem('game', {
 		});
 	},
 
+	everySecond: function () {
+		this.removeLocalDisconnects(this.data);
+		this.getPlayerObjectsInScene()
+	},
+
 	tick: function (t, dt) {
 		// Return if there are no remote players
 		if (remoteData === undefined || remoteData.length == 0 || this.data.localPlayerId === undefined) { return };
-
+		this.throttledFunction();
 		this.updatePlayersInScene(this.data, this.el.sceneEl);
-		this.removeLocalDisconnects(this.data);
 		this.updateLocalPlayerOnServer(this.data);
 	},
 
@@ -80,6 +86,9 @@ AFRAME.registerSystem('game', {
 			// After creating any missing remote player locally, delete local player not on the remote
 			let remoteIds = remoteData.map(player => player.id);
 			if (JSON.stringify(remoteIds.sort()) !== JSON.stringify(gameData.localIds.sort())) { // discrepancy exists
+				console.log('discrepancy between remote (top) and local (bottom) data');
+				console.log(remoteIds)
+				console.log(gameData.localIds)
 				let disconnectedIds = gameData.localIds.filter(x => !remoteIds.includes(x));
 				disconnectedIds.forEach((id) => {
 					if (id !== gameData.localPlayerId) {
@@ -115,6 +124,10 @@ AFRAME.registerSystem('game', {
 				rw: quaternion.w
 			});
 		}
-	})()
+	})(),
+
+	getPlayerObjectsInScene: () => {
+		// console.log(document.querySelectorAll('a-player'));
+	}
 
 });
