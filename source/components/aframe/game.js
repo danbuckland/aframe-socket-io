@@ -1,13 +1,13 @@
 import * as io from 'socket.io-client';
 // TODO: Move these to system variables
 // TODO: Separate components out into separate files
-const localIds = [];
 let remoteData = [];
 
-// TODO: Consider turning game into a system https://aframe.io/docs/1.0.0/core/systems.html
+// https://aframe.io/docs/1.0.0/core/systems.html
 AFRAME.registerSystem('game', {
 	schema: {
-		localPlayerId: { type: 'string' }
+		localPlayerId: { type: 'string' },
+		localIds: { type: 'array' }
 	},
 
 	init: function () {
@@ -15,7 +15,7 @@ AFRAME.registerSystem('game', {
 
 		this.socket.on('connect', () => {
 			this.data.localPlayerId = this.socket.id; 
-			localIds.push(this.socket.id);
+			this.data.localIds.push(this.socket.id);
 			let camera = document.getElementById('camera');
 			let localPlayer = document.createElement('a-player');
 			localPlayer.setAttribute('id', this.socket.id);
@@ -43,16 +43,16 @@ AFRAME.registerSystem('game', {
 		// Return if there are no remote players
 		if (remoteData === undefined || remoteData.length == 0 || this.data.localPlayerId === undefined) { return };
 
-		this.updatePlayersInScene(this.data.localPlayerId, this.el.sceneEl);
-		this.removeLocalDisconnects(this.data.localPlayerId);
-		this.updateLocalPlayerOnServer(this.data.localPlayerId);
+		this.updatePlayersInScene(this.data, this.el.sceneEl);
+		this.removeLocalDisconnects(this.data);
+		this.updateLocalPlayerOnServer(this.data);
 	},
 
 	updatePlayersInScene: (function () {
-		return function (localPlayerId, scene) {
-			if (!localPlayerId) { return };
+		return function (gameData, scene) {
+			if (!gameData.localPlayerId) { return };
 			remoteData.forEach(function (data) {
-				if (localPlayerId != data.id) {
+				if (gameData.localPlayerId != data.id) {
 					if (!document.getElementById(data.id)) {
 						// Append player to scene if remote player does not exist
 						// TODO: Check for race conditions and consider implementing concept of initialising players
@@ -63,7 +63,7 @@ AFRAME.registerSystem('game', {
 						remotePlayer.setAttribute('color', data.color);
 						remotePlayer.setAttribute('position', data.position);
 						scene.appendChild(remotePlayer);
-						localIds.push(data.id);
+						gameData.localIds.push(data.id);
 					} else if (document.getElementById(data.id)) {
 						// Update remote player position if it does exist
 						let remotePlayer = document.getElementById(data.id);
@@ -76,19 +76,19 @@ AFRAME.registerSystem('game', {
 	})(),
 
 	removeLocalDisconnects: (function () {
-		return function (localPlayerId) {
-			if (!localPlayerId) { return };
+		return function (gameData) {
+			if (!gameData.localPlayerId) { return };
 			// After creating any missing remote player locally, delete local player not on the remote
 			let remoteIds = remoteData.map(player => player.id);
-			if (JSON.stringify(remoteIds.sort()) !== JSON.stringify(localIds.sort())) { // discrepancy exists
-				let disconnectedIds = localIds.filter(x => !remoteIds.includes(x));
+			if (JSON.stringify(remoteIds.sort()) !== JSON.stringify(gameData.localIds.sort())) { // discrepancy exists
+				let disconnectedIds = gameData.localIds.filter(x => !remoteIds.includes(x));
 				disconnectedIds.forEach(function (id) {
-					if (id !== localPlayerId) {
+					if (id !== gameData.localPlayerId) {
 						console.log(`Deleting already disconnected ${id}`);
 						let disconnectedEntity = document.getElementById(id);
 						disconnectedEntity.parentNode.removeChild(disconnectedEntity);
-						let i = localIds.indexOf(id);
-						localIds.splice(i, i + 1);
+						let i = gameData.localIds.indexOf(id);
+						gameData.localIds.splice(i, i + 1);
 					}
 				})
 			};
@@ -100,9 +100,9 @@ AFRAME.registerSystem('game', {
 		let position = new THREE.Vector3();
 		let quaternion = new THREE.Quaternion();
 
-		return function (localPlayerId) {
-			if (!localPlayerId) { return };
-			let localPlayerElement = document.getElementById(localPlayerId);
+		return function (gameData) {
+			if (!gameData.localPlayerId) { return };
+			let localPlayerElement = document.getElementById(gameData.localPlayerId);
 			if (localPlayerElement) {
 				localPlayerElement.object3D.getWorldPosition(position);
 				localPlayerElement.object3D.getWorldQuaternion(quaternion);
