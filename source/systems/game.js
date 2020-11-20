@@ -5,14 +5,13 @@ let remoteData = [];
 // https://aframe.io/docs/1.0.0/core/systems.html
 AFRAME.registerSystem('game', {
 	schema: {
-		localPlayerId: { type: 'string' },
-		localIds: { type: 'array' } //TODO: Remove this as it's not needed
+		localPlayerId: { type: 'string' }
 	},
 
 	init: function () {
 		this.socket = io();
 
-		this.throttledFunction = AFRAME.utils.throttle(this.everySecond, 10000, this);
+		this.throttledFunction = AFRAME.utils.throttle(this.everySecond, 1000, this);
 
 		this.socket.on('connect', () => {
 			this.data.localPlayerId = this.socket.id;
@@ -27,17 +26,13 @@ AFRAME.registerSystem('game', {
 		this.socket.on('remoteData', (data) => { remoteData = data });
 
 		// Remove remote players who disconnect
-		// TODO: handle local player disconnecting when server restarts
-		// TODO: consider calculating this from remoteData instead of discrete event
 		this.socket.on('deletePlayer', (data) => {
-			// TODO: Reinstate this method to avoid doing it in a throttled function
 			console.log(`Player ${data.id} disconnected`);
 			let disconnectedPlayer = document.getElementById(data.id);
 			if (disconnectedPlayer) { 
 				console.log('found disconnected player in scene, deleting');
 				disconnectedPlayer.setAttribute('destroyer', { ttl: 0 });
 			};
-			
 			// TODO: Add this nice disconnect visual back in later
 			// if (disconnectedPlayer) {
 			// 	disconnectedPlayer.setAttribute('destroyer', { ttl: 3 });
@@ -73,7 +68,6 @@ AFRAME.registerSystem('game', {
 						remotePlayer.setAttribute('color', data.color);
 						remotePlayer.setAttribute('position', data.position);
 						scene.appendChild(remotePlayer);
-						// gameData.localIds.push(data.id);
 					} else if (document.getElementById(data.id)) {
 						// Update remote player position if it does exist
 						let remotePlayer = document.getElementById(data.id);
@@ -86,27 +80,24 @@ AFRAME.registerSystem('game', {
 	})(),
 
 	removeLocalDisconnects: (() => {
+		// Catches and deletes instances of 'a-player' in the scene not in remote data
+		let sceneIds = [];
+
 		return (gameData) => {
 			if (!gameData.localPlayerId) { return };
-			// After creating any missing remote player locally, delete local player not on the remote
+			// After creating any missing remote players locally, delete scene players not on the remote
 			let remoteIds = remoteData.map(player => player.id);
-			let playersArray = [];
-			document.querySelectorAll('a-player').forEach((player) => { playersArray.push(player.id) })
-			gameData.localIds = playersArray;
-			// let sceneIds = document.querySelectorAll('a-player').map(player => player.id);
-			// console.log(sceneIds);
-			if (JSON.stringify(remoteIds.sort()) !== JSON.stringify(gameData.localIds.sort())) { // discrepancy exists
-				console.log('discrepancy between remote (top) and local (bottom) data');
-				console.log(remoteIds)
-				console.log(gameData.localIds)
-				let disconnectedIds = gameData.localIds.filter(x => !remoteIds.includes(x));
+			sceneIds = []; // Reset the array first before pushing
+			document.querySelectorAll('a-player').forEach((player) => { sceneIds.push(player.id) })
+			if (JSON.stringify(remoteIds.sort()) !== JSON.stringify(sceneIds.sort())) { // discrepancy exists
+				let disconnectedIds = sceneIds.filter(x => !remoteIds.includes(x));
 				disconnectedIds.forEach((id) => {
 					if (id !== gameData.localPlayerId) {
 						console.log(`Deleting already disconnected ${id}`);
 						let disconnectedEntity = document.getElementById(id);
 						disconnectedEntity.parentNode.removeChild(disconnectedEntity);
-						let i = gameData.localIds.indexOf(id);
-						gameData.localIds.splice(i, i + 1);
+						let i = sceneIds.indexOf(id);
+						sceneIds.splice(i, i + 1);
 					}
 				})
 			};
@@ -135,16 +126,4 @@ AFRAME.registerSystem('game', {
 			});
 		}
 	})()
-
-	// getPlayerObjectsInScene: () => {
-	// 	let players = document.querySelectorAll('a-player');
-	// 	let playersArray = [];
-	// 	players.forEach((player) => {
-	// 		playersArray.push(player.id);
-	// 	});
-	// 	return playersArray;
-	// }
-	// let playersArray = [];
-	// document.querySelectorAll('a-player').forEach((player) => { playersArray.push(player.id) })
-
 });
