@@ -2,8 +2,8 @@ AFRAME.registerPrimitive('a-player', {
 	// https://aframe.io/docs/1.0.0/introduction/html-and-primitives.html#registering-a-primitive
 	defaultComponents: {
 		player: {}
-	}, 
-	
+	},
+
 	mappings: {
 		id: 'player.id',
 		shape: 'player.shape',
