@@ -15,7 +15,6 @@ AFRAME.registerSystem('game', {
 
 		this.socket.on('connect', () => {
 			this.data.localPlayerId = this.socket.id;
-			// this.data.localIds.push(this.socket.id);
 			let camera = document.getElementById('camera');
 			let localPlayer = document.createElement('a-player');
 			localPlayer.setAttribute('id', this.socket.id);
@@ -34,10 +33,7 @@ AFRAME.registerSystem('game', {
 				disconnectedPlayer.setAttribute('destroyer', { ttl: 0 });
 			};
 			// TODO: Add this nice disconnect visual back in later
-			// if (disconnectedPlayer) {
-			// 	disconnectedPlayer.setAttribute('destroyer', { ttl: 3 });
-			// 	disconnectedPlayer.setAttribute('dynamic-body', { shape: 'box', mass: 2, angularDamping: 0.5, linearDamping: 0.9 });
-			// }
+			// disconnectedPlayer.setAttribute('dynamic-body', { shape: 'box', mass: 2, angularDamping: 0.5, linearDamping: 0.9 });
 		});
 	},
 
