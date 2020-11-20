@@ -1,4 +1,5 @@
 import 'aframe';
+import './components/destroyer';
 import './systems/game';
 import './primitives/a-player';
 

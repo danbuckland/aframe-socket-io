@@ -6,17 +6,17 @@ let remoteData = [];
 AFRAME.registerSystem('game', {
 	schema: {
 		localPlayerId: { type: 'string' },
-		localIds: { type: 'array' }
+		localIds: { type: 'array' } //TODO: Remove this as it's not needed
 	},
 
 	init: function () {
 		this.socket = io();
 
-		this.throttledFunction = AFRAME.utils.throttle(this.everySecond, 1000, this);
+		this.throttledFunction = AFRAME.utils.throttle(this.everySecond, 10000, this);
 
 		this.socket.on('connect', () => {
 			this.data.localPlayerId = this.socket.id;
-			this.data.localIds.push(this.socket.id);
+			// this.data.localIds.push(this.socket.id);
 			let camera = document.getElementById('camera');
 			let localPlayer = document.createElement('a-player');
 			localPlayer.setAttribute('id', this.socket.id);
@@ -30,8 +30,14 @@ AFRAME.registerSystem('game', {
 		// TODO: handle local player disconnecting when server restarts
 		// TODO: consider calculating this from remoteData instead of discrete event
 		this.socket.on('deletePlayer', (data) => {
-			// let disconnectedPlayer = document.getElementById(data.id);
+			// TODO: Reinstate this method to avoid doing it in a throttled function
 			console.log(`Player ${data.id} disconnected`);
+			let disconnectedPlayer = document.getElementById(data.id);
+			if (disconnectedPlayer) { 
+				console.log('found disconnected player in scene, deleting');
+				disconnectedPlayer.setAttribute('destroyer', { ttl: 0 });
+			};
+			
 			// TODO: Add this nice disconnect visual back in later
 			// if (disconnectedPlayer) {
 			// 	disconnectedPlayer.setAttribute('destroyer', { ttl: 3 });
@@ -42,7 +48,6 @@ AFRAME.registerSystem('game', {
 
 	everySecond: function () {
 		this.removeLocalDisconnects(this.data);
-		this.getPlayerObjectsInScene()
 	},
 
 	tick: function (t, dt) {
@@ -68,7 +73,7 @@ AFRAME.registerSystem('game', {
 						remotePlayer.setAttribute('color', data.color);
 						remotePlayer.setAttribute('position', data.position);
 						scene.appendChild(remotePlayer);
-						gameData.localIds.push(data.id);
+						// gameData.localIds.push(data.id);
 					} else if (document.getElementById(data.id)) {
 						// Update remote player position if it does exist
 						let remotePlayer = document.getElementById(data.id);
@@ -85,6 +90,11 @@ AFRAME.registerSystem('game', {
 			if (!gameData.localPlayerId) { return };
 			// After creating any missing remote player locally, delete local player not on the remote
 			let remoteIds = remoteData.map(player => player.id);
+			let playersArray = [];
+			document.querySelectorAll('a-player').forEach((player) => { playersArray.push(player.id) })
+			gameData.localIds = playersArray;
+			// let sceneIds = document.querySelectorAll('a-player').map(player => player.id);
+			// console.log(sceneIds);
 			if (JSON.stringify(remoteIds.sort()) !== JSON.stringify(gameData.localIds.sort())) { // discrepancy exists
 				console.log('discrepancy between remote (top) and local (bottom) data');
 				console.log(remoteIds)
@@ -124,10 +134,17 @@ AFRAME.registerSystem('game', {
 				rw: quaternion.w
 			});
 		}
-	})(),
+	})()
 
-	getPlayerObjectsInScene: () => {
-		// console.log(document.querySelectorAll('a-player'));
-	}
+	// getPlayerObjectsInScene: () => {
+	// 	let players = document.querySelectorAll('a-player');
+	// 	let playersArray = [];
+	// 	players.forEach((player) => {
+	// 		playersArray.push(player.id);
+	// 	});
+	// 	return playersArray;
+	// }
+	// let playersArray = [];
+	// document.querySelectorAll('a-player').forEach((player) => { playersArray.push(player.id) })
 
 });
