@@ -1,4 +1,5 @@
 import 'aframe';
-import './components/aframe/game';
+import './systems/game';
+import './primitives/a-player';
 
 window.CLOCK = new THREE.Clock();

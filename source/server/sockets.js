@@ -4,8 +4,6 @@ module.exports = function(io) {
 		// define custom user data for position and direction
 		socket.userData = { position: { x: 0, y: 0, z: 0 }, rx: 0, ry: 0, rz: 0, rw: 1 };
 		console.log(`${socket.id} connected`);
-		// emit the socket id to connected clients
-		socket.emit('setId', { id: socket.id });
 
 		// on disconnect, let all other sockets know which socket disconnected
 		socket.on('disconnect', function () {
