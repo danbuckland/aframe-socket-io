@@ -67,7 +67,7 @@ AFRAME.registerSystem('game', {
 						// Update remote player position if it does exist
 						let remotePlayer = document.getElementById(data.id);
 						remotePlayer.object3D.position.copy(data.position);
-						remotePlayer.object3D.quaternion.set(data.rx, data.ry, data.rz, data.rw);
+						remotePlayer.object3D.rotation.setFromQuaternion(data.quaternion);
 					}
 				}
 			});
@@ -113,10 +113,7 @@ AFRAME.registerSystem('game', {
 
 			this.socket.emit('update', {
 				position: position,
-				rx: quaternion.x,
-				ry: quaternion.y,
-				rz: quaternion.z,
-				rw: quaternion.w
+				quaternion: quaternion
 			});
 		}
 	})()

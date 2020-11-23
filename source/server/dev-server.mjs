@@ -54,10 +54,7 @@ setInterval(function () {
 				shape: socket.userData.shape,
 				color: socket.userData.color,
 				position: socket.userData.position,
-				rx: socket.userData.rx,
-				ry: socket.userData.ry,
-				rz: socket.userData.rz,
-				rw: socket.userData.rw
+				quaternion: socket.userData.quaternion
 			});
 		};
 	}
