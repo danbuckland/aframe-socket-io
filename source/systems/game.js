@@ -28,8 +28,7 @@ AFRAME.registerSystem('game', {
 		this.socket.on('deletePlayer', (data) => {
 			console.log(`Player ${data.id} disconnected`);
 			let disconnectedPlayer = document.getElementById(data.id);
-			if (disconnectedPlayer) { 
-				console.log('found disconnected player in scene, deleting');
+			if (disconnectedPlayer) {
 				disconnectedPlayer.setAttribute('destroyer', { ttl: 0 });
 			};
 			// TODO: Add this nice disconnect visual back in later
@@ -87,12 +86,11 @@ AFRAME.registerSystem('game', {
 			document.querySelectorAll('a-player').forEach((player) => { sceneIds.push(player.id) })
 			if (JSON.stringify(remoteIds.sort()) !== JSON.stringify(sceneIds.sort())) { // discrepancy exists
 				let disconnectedIds = sceneIds.filter(x => !remoteIds.includes(x));
-				disconnectedIds.forEach((id) => {
+				disconnectedIds.forEach((id, i) => {
 					if (id !== gameData.localPlayerId) {
 						console.log(`Deleting already disconnected ${id}`);
 						let disconnectedEntity = document.getElementById(id);
 						disconnectedEntity.parentNode.removeChild(disconnectedEntity);
-						let i = sceneIds.indexOf(id);
 						sceneIds.splice(i, i + 1);
 					}
 				})
