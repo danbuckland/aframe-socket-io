@@ -1,28 +1,24 @@
 import * as io from 'socket.io-client';
-// TODO: Move this to a system variables
-let remoteData = [];
 
 // https://aframe.io/docs/1.0.0/core/systems.html
 AFRAME.registerSystem('game', {
 	schema: {
-		localPlayerId: { type: 'string' }
+		localPlayerId: { type: 'string' },
+		remoteData: { type: 'array' }
 	},
 
 	init: function () {
 		this.socket = io();
-
 		this.throttledFunction = AFRAME.utils.throttle(this.everySecond, 1000, this);
 
 		this.socket.on('connect', () => {
 			this.data.localPlayerId = this.socket.id;
-			let camera = document.getElementById('camera');
 			let localPlayer = document.createElement('a-player');
 			localPlayer.setAttribute('id', this.socket.id);
-			localPlayer.setAttribute('local', true);
-			camera.appendChild(localPlayer);
+			document.getElementById('camera').appendChild(localPlayer);
 		});
 
-		this.socket.on('remoteData', (data) => { remoteData = data });
+		this.socket.on('remoteData', (data) => { this.data.remoteData = data });
 
 		// Remove remote players who disconnect
 		this.socket.on('deletePlayer', (data) => {
@@ -42,7 +38,7 @@ AFRAME.registerSystem('game', {
 
 	tick: function (t, dt) {
 		// Return if there are no remote players
-		if (remoteData === undefined || remoteData.length == 0 || this.data.localPlayerId === undefined) { return };
+		if (this.data.remoteData === undefined || this.data.remoteData.length == 0 || this.data.localPlayerId === undefined) { return };
 		this.throttledFunction();
 		this.updatePlayersInScene(this.data, this.el.sceneEl);
 		this.updateLocalPlayerOnServer(this.data);
@@ -51,7 +47,7 @@ AFRAME.registerSystem('game', {
 	updatePlayersInScene: (() => {
 		return (gameData, scene) => {
 			if (!gameData.localPlayerId) { return };
-			remoteData.forEach((data) => {
+			gameData.remoteData.forEach((data) => {
 				if (gameData.localPlayerId != data.id) {
 					if (!document.getElementById(data.id)) {
 						// Append player to scene if remote player does not exist
@@ -81,17 +77,17 @@ AFRAME.registerSystem('game', {
 		return (gameData) => {
 			if (!gameData.localPlayerId) { return };
 			// After creating any missing remote players locally, delete scene players not on the remote
-			let remoteIds = remoteData.map(player => player.id);
+			let remoteIds = gameData.remoteData.map(player => player.id);
 			sceneIds = []; // Reset the array first before pushing
 			document.querySelectorAll('a-player').forEach((player) => { sceneIds.push(player.id) })
 			if (JSON.stringify(remoteIds.sort()) !== JSON.stringify(sceneIds.sort())) { // discrepancy exists
 				let disconnectedIds = sceneIds.filter(x => !remoteIds.includes(x));
-				disconnectedIds.forEach((id, i) => {
+				disconnectedIds.forEach((id, index) => {
 					if (id !== gameData.localPlayerId) {
 						console.log(`Deleting already disconnected ${id}`);
 						let disconnectedEntity = document.getElementById(id);
 						disconnectedEntity.parentNode.removeChild(disconnectedEntity);
-						sceneIds.splice(i, i + 1);
+						sceneIds.splice(index, index + 1);
 					}
 				})
 			};
