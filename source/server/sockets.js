@@ -2,7 +2,10 @@
 module.exports = function(io) {
 	io.on('connection', function (socket) {
 		// define custom user data for position and direction
-		socket.userData = { position: { x: 0, y: 0, z: 0 }, rx: 0, ry: 0, rz: 0, rw: 1 };
+		socket.userData = { 
+			position: { x: 0, y: 0, z: 0 }, 
+			quaternion: { _w: 1, _x: 0, _y: 0, _z: 0 }
+		};
 		console.log(`${socket.id} connected`);
 
 		// on disconnect, let all other sockets know which socket disconnected
@@ -16,19 +19,13 @@ module.exports = function(io) {
 			socket.userData.shape = data.shape;
 			socket.userData.color = data.color;
 			socket.userData.position = data.position;
-			socket.userData.rx = data.rx;
-			socket.userData.ry = data.ry;
-			socket.userData.rz = data.rz;
-			socket.userData.rw = data.rw;
+			socket.userData.quaternion = data.quaternion;
 		});
 
 		// update user data that changes frame to frame
 		socket.on('update', function (data) {
 			socket.userData.position = data.position;
-			socket.userData.rx = data.rx;
-			socket.userData.ry = data.ry;
-			socket.userData.rz = data.rz;
-			socket.userData.rw = data.rw;
+			socket.userData.quaternion = data.quaternion;
 		});
 	});
 }

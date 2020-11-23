@@ -32,6 +32,7 @@ AFRAME.registerComponent('player', {
 		let shape = this.data.shape;
 		let local = !shape;
 		let position = this.data.position;
+		let quaternion = new THREE.Quaternion();
 		this.game = this.el.sceneEl.systems.game;
 
 		// if player component is local, set some values for the player
@@ -50,19 +51,20 @@ AFRAME.registerComponent('player', {
 		// emit 'init' event to share info about the player if player is local
 		if (local) {
 			console.log(`Local player ${this.game.data.localPlayerId} joined as a ${color} ${shape}`);
-			this.initSocket(shape, color, position);
+			this.initSocket(shape, color, position, quaternion);
 		} else {
 			console.log(`Player ${this.data.id} joined as a ${color} ${shape}`);
 		}
 	},
 
-	initSocket: function (shape, color, position) {
+	initSocket: function (shape, color, position, quaternion) {
 		if (!this.game.socket) { return };
 		this.game.socket.emit('init', {
 			shape: shape,
 			color: color,
 			id: this.data.id,
-			position: position
+			position: position,
+			quaternion: quaternion
 		});
 	}
 });
