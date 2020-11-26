@@ -30,6 +30,7 @@ AFRAME.registerSystem('game', {
 				disconnectedPlayer.setAttribute('velocity-glow', '');
 				disconnectedPlayer.setAttribute('dynamic-body', { shape: 'sphere', mass: 2, angularDamping: 0.01, linearDamping: 0.01 });
 				disconnectedPlayer.setAttribute('material', 'color', '#5E6472');
+				disconnectedPlayer.setAttribute('material', 'opacity', 0.6)
 			};
 		});
 	},
