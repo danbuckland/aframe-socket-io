@@ -25,10 +25,12 @@ AFRAME.registerSystem('game', {
 			console.log(`Player ${data.id} disconnected`);
 			let disconnectedPlayer = document.getElementById(data.id);
 			if (disconnectedPlayer) {
-				disconnectedPlayer.setAttribute('destroyer', { ttl: 0 });
+				disconnectedPlayer.setAttribute('destroyer', { ttl: 5 });
+				disconnectedPlayer.setAttribute('id', 'destroyed');
+				disconnectedPlayer.setAttribute('velocity-glow', '');
+				disconnectedPlayer.setAttribute('dynamic-body', { shape: 'sphere', mass: 2, angularDamping: 0.01, linearDamping: 0.01 });
+				disconnectedPlayer.setAttribute('material', 'color', '#5E6472');
 			};
-			// TODO: Add this nice disconnect visual back in later
-			// disconnectedPlayer.setAttribute('dynamic-body', { shape: 'box', mass: 2, angularDamping: 0.5, linearDamping: 0.9 });
 		});
 	},
 
@@ -55,7 +57,7 @@ AFRAME.registerSystem('game', {
 						// TODO: Add a create remote player function or constructor (possibly with self.functionName)
 						let remotePlayer = document.createElement('a-player');
 						remotePlayer.setAttribute('id', data.id);
-						remotePlayer.setAttribute('shape', data.shape);
+						remotePlayer.setAttribute('playershape', data.shape);
 						remotePlayer.setAttribute('color', data.color);
 						remotePlayer.setAttribute('position', data.position);
 						scene.appendChild(remotePlayer);
@@ -83,7 +85,7 @@ AFRAME.registerSystem('game', {
 			if (JSON.stringify(remoteIds.sort()) !== JSON.stringify(sceneIds.sort())) { // discrepancy exists
 				let disconnectedIds = sceneIds.filter(x => !remoteIds.includes(x));
 				disconnectedIds.forEach((id, index) => {
-					if (id !== gameData.localPlayerId) {
+					if (id !== gameData.localPlayerId && id !== 'destroyed') {
 						console.log(`Deleting already disconnected ${id}`);
 						let disconnectedEntity = document.getElementById(id);
 						disconnectedEntity.parentNode.removeChild(disconnectedEntity);

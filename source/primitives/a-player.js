@@ -6,7 +6,7 @@ AFRAME.registerPrimitive('a-player', {
 
 	mappings: {
 		id: 'player.id',
-		shape: 'player.shape',
+		playershape: 'player.shape',
 		color: 'player.color'
 	}
 });
@@ -25,7 +25,7 @@ AFRAME.registerComponent('player', {
 	},
 
 	init: function () {
-		const colors = ['#3A7D44', '#ffc2c5', '#e3bac6', '#bc9ec1', '#dbf4a7', '#9dcdc0', '#ff934f', '#5E6472', '#507DBC'];
+		const colors = ['#3A7D44', '#ffc2c5', '#e3bac6', '#bc9ec1', '#dbf4a7', '#9dcdc0', '#ff934f', '#507DBC'];
 		const shapes = ['octahedron', 'dodecahedron', 'box', 'tetrahedron'];
 		let el = this.el;
 		let color = this.data.color;

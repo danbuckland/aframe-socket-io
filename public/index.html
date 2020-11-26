@@ -1,16 +1,17 @@
 <html>
   <head>
     <script src="/dist/bundle.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/n5ro/aframe-physics-system@v4.0.1/dist/aframe-physics-system.min.js"></script>
     <!-- Importing aframe-physics-system with Yarn/NPM causes issues -->
   </head>
 
   <body>
-    <a-scene game background="color: black" renderer="antialias: true">
+    <a-scene physics="debug: true, gravity: -9.8" game background="color: black" renderer="antialias: true">
       <!-- Plane -->
-      <a-box id="ground" scale="10 1 10" position="0 -0.5 0" color="#444444" visible="true"></a-box>
+      <a-box static-body id="ground" scale="10 1 10" position="0 -0.5 0" color="#444444" visible="true"></a-box>
 
       <!-- Box -->
-      <a-box class="collidable" position="0 0.5 -1" color="#cccccc"></a-box>
+      <a-box rotation="-10 10 20" static-body class="collidable" position="0 0.3 -1" color="#cccccc"></a-box>
 
       <!-- Camera Rig - has to be here because of A-Frame's order-dependent rendering -->
       <a-entity id="rig">
