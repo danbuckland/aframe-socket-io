@@ -48,25 +48,32 @@ AFRAME.registerSystem('game', {
 	},
 
 	updatePlayersInScene: (() => {
+		const constructPlayer = (data, scene) => {
+			// TODO: Check for race conditions and consider implementing concept of initialising players
+			let remotePlayer = document.createElement('a-player');
+			remotePlayer.setAttribute('id', data.id);
+			remotePlayer.setAttribute('playershape', data.shape);
+			remotePlayer.setAttribute('color', data.color);
+			remotePlayer.setAttribute('position', data.position);
+			scene.appendChild(remotePlayer);
+		}
+
+		const updatePlayer = (data) => {
+			let remotePlayer = document.getElementById(data.id);
+			remotePlayer.object3D.position.copy(data.position);
+			remotePlayer.object3D.rotation.setFromQuaternion(data.quaternion);
+		}
+
 		return (gameData, scene) => {
 			if (!gameData.localPlayerId) { return };
 			gameData.remoteData.forEach((data) => {
 				if (gameData.localPlayerId != data.id) {
 					if (!document.getElementById(data.id)) {
 						// Append player to scene if remote player does not exist
-						// TODO: Check for race conditions and consider implementing concept of initialising players
-						// TODO: Add a create remote player function or constructor (possibly with self.functionName)
-						let remotePlayer = document.createElement('a-player');
-						remotePlayer.setAttribute('id', data.id);
-						remotePlayer.setAttribute('playershape', data.shape);
-						remotePlayer.setAttribute('color', data.color);
-						remotePlayer.setAttribute('position', data.position);
-						scene.appendChild(remotePlayer);
-					} else if (document.getElementById(data.id)) {
-						// Update remote player position if it does exist
-						let remotePlayer = document.getElementById(data.id);
-						remotePlayer.object3D.position.copy(data.position);
-						remotePlayer.object3D.rotation.setFromQuaternion(data.quaternion);
+						constructPlayer(data, scene);
+					} else {
+						// Update remote player position and rotation if it does exist
+						updatePlayer(data);
 					}
 				}
 			});
