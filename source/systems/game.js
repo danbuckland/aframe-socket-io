@@ -82,6 +82,7 @@ AFRAME.registerSystem('game', {
 
 	removeLocalDisconnects: (() => {
 		// Catches and deletes instances of 'a-player' in the scene not in remote data
+		// TODO: swap Arrays for Objects where possible to improve access speed
 		let sceneIds = [];
 
 		return (gameData) => {
