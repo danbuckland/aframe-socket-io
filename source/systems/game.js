@@ -82,21 +82,19 @@ AFRAME.registerSystem('game', {
 
 	removeLocalDisconnects: (() => {
 		// Catches and deletes instances of 'a-player' in the scene not in remote data
-		// TODO: swap Arrays for Objects where possible to improve access speed
-		let sceneIds = [];
-
+		let remoteIds, sceneIds, disconnectedIds, disconnectedEntity
 		return (gameData) => {
 			if (!gameData.localPlayerId) { return };
 			// After creating any missing remote players locally, delete scene players not on the remote
-			let remoteIds = gameData.remoteData.map(player => player.id);
+			remoteIds = gameData.remoteData.map(player => player.id);
 			sceneIds = []; // Reset the array first before pushing
 			document.querySelectorAll('a-player').forEach((player) => { sceneIds.push(player.id) })
 			if (JSON.stringify(remoteIds.sort()) !== JSON.stringify(sceneIds.sort())) { // discrepancy exists
-				let disconnectedIds = sceneIds.filter(x => !remoteIds.includes(x));
+				disconnectedIds = sceneIds.filter(x => !remoteIds.includes(x));
 				disconnectedIds.forEach((id, index) => {
 					if (id !== gameData.localPlayerId && id !== 'destroyed') {
 						console.log(`Deleting already disconnected ${id}`);
-						let disconnectedEntity = document.getElementById(id);
+						disconnectedEntity = document.getElementById(id);
 						disconnectedEntity.parentNode.removeChild(disconnectedEntity);
 						sceneIds.splice(index, index + 1);
 					}
