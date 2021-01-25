@@ -24,7 +24,7 @@
   },
   "engines": {
     "node": "14.x",
-    "yarn": "1.22.5"
+    "yarn": "1.22.x"
   },
   "devDependencies": {
     "@babel/core": "^7.11.6",
