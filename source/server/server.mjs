@@ -16,8 +16,7 @@ if (process.env.NODE_ENV !== "production") {
 }
 
 console.log('Running in PRODUCTION, this will NOT work locally');
-let server = app.use(sslRedirect())
-	.use(express.static(publicPath))
+let server = app.use(express.static(publicPath))
 	.set('assets', path.join(publicPath, 'assets'))
 	.get('/', (req, res) => res.sendFile(path.join(publicPath, 'index.html')))
 	.listen(port, () => console.log(`Listening...`));
