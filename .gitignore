@@ -4,3 +4,8 @@ node_modules/
 *.pem
 references/
 public/dist/
+.elasticbeanstalk/
+# Elastic Beanstalk Files
+.elasticbeanstalk/*
+!.elasticbeanstalk/*.cfg.yml
+!.elasticbeanstalk/*.global.yml
