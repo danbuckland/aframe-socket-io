@@ -1,7 +1,7 @@
 # A-Frame Socket.IO Multiplayer Experience
 A simple demonstration multiplayer experience using [A-Frame](https://aframe.io/) and [Socket.IO](https://socket.io/).
 
-See it running at https://aframe-socket-io.herokuapp.com/.
+See it running at https://vr.danb.io/.
 
 ## Building and running
 In order to run locally, you will need to generate local ssh keys. Do this by running `mkcert localhost`.
