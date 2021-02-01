@@ -9,3 +9,4 @@ public/dist/
 .elasticbeanstalk/*
 !.elasticbeanstalk/*.cfg.yml
 !.elasticbeanstalk/*.global.yml
+deploy-instructions.md
