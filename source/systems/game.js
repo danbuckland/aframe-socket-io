@@ -96,7 +96,7 @@ AFRAME.registerSystem('game', {
 						console.log(`Deleting already disconnected ${id}`);
 						disconnectedEntity = document.getElementById(id);
 						disconnectedEntity.parentNode.removeChild(disconnectedEntity);
-						sceneIds.splice(index, index + 1);
+						sceneIds.splice(index, 1);
 					}
 				})
 			};
