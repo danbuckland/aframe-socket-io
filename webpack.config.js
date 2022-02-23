@@ -5,7 +5,7 @@ module.exports = (env) => {
 
   return {
     mode: 'none',
-    entry: './source/app.js',
+    entry: __dirname + '/source/app.js',
     output: {
       path: path.join(__dirname, 'public', 'dist'),
       publicPath: '/dist/',
