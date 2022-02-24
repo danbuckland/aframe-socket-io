@@ -21,7 +21,7 @@ module.exports = function (io) {
       socket.userData.position = data.position
       socket.userData.quaternion = data.quaternion
     })
-
+		
     // update user data that changes frame to frame
     socket.on('update', function (data) {
       socket.userData.position = data.position

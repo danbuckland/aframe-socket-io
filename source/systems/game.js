@@ -1,4 +1,4 @@
-import * as io from 'socket.io-client'
+import io from 'socket.io-client'
 
 // https://aframe.io/docs/1.0.0/core/systems.html
 AFRAME.registerSystem('game', {
@@ -12,7 +12,7 @@ AFRAME.registerSystem('game', {
     this.throttledFunction = AFRAME.utils.throttle(this.everySecond, 1000, this)
 
     this.socket.on('connect', () => {
-      this.data.localPlayerId = this.socket.id
+			this.data.localPlayerId = this.socket.id
       let localPlayer = document.createElement('a-player')
       localPlayer.setAttribute('id', this.socket.id)
       document.getElementById('camera').appendChild(localPlayer)
@@ -78,9 +78,8 @@ AFRAME.registerSystem('game', {
     }
 
     return (gameData, scene) => {
-      if (!gameData.localPlayerId) {
-        return
-      }
+      if (!gameData.localPlayerId) return
+
       gameData.remoteData.forEach((data) => {
         if (gameData.localPlayerId != data.id) {
           if (!document.getElementById(data.id)) {
@@ -99,18 +98,14 @@ AFRAME.registerSystem('game', {
     // Catches and deletes instances of 'a-player' in the scene not in remote data
     let remoteIds, sceneIds, disconnectedIds, disconnectedEntity
     return (gameData) => {
-      if (!gameData.localPlayerId) {
-        return
-      }
+      if (!gameData.localPlayerId) return
       // After creating any missing remote players locally, delete scene players not on the remote
       remoteIds = gameData.remoteData.map((player) => player.id)
       sceneIds = [] // Reset the array first before pushing
       document.querySelectorAll('a-player').forEach((player) => {
         sceneIds.push(player.id)
       })
-      if (
-        JSON.stringify(remoteIds.sort()) !== JSON.stringify(sceneIds.sort())
-      ) {
+      if (JSON.stringify(remoteIds.sort()) !== JSON.stringify(sceneIds.sort())) {
         // discrepancy exists
         disconnectedIds = sceneIds.filter((x) => !remoteIds.includes(x))
         disconnectedIds.forEach((id, index) => {
@@ -131,9 +126,8 @@ AFRAME.registerSystem('game', {
     let quaternion = new THREE.Quaternion()
 
     return function (gameData) {
-      if (!gameData.localPlayerId) {
-        return
-      }
+      if (!gameData.localPlayerId) return
+
       let localPlayerElement = document.getElementById(gameData.localPlayerId)
       if (localPlayerElement) {
         localPlayerElement.object3D.getWorldPosition(position)

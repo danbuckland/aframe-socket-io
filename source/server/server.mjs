@@ -1,6 +1,6 @@
 // For use with Node versions 12.4 and above
 import express from 'express'
-import socketio from 'socket.io'
+import { Server } from 'socket.io'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import sslRedirect from 'heroku-ssl-redirect'
@@ -23,7 +23,10 @@ let server = app
   .listen(port, () => console.log(`Listening on port ${port}`))
 
 // create io listener
-const io = socketio.listen(server)
+const io = new Server(server, {
+  cors: true,
+  origin: ['https://localhost:7070', 'https://0.0.0.0:7070', 'https://danb.io'],
+})
 
 // serve index.html when user requests '/'
 app.get('/', function (req, res) {
@@ -34,20 +37,23 @@ sockets(io)
 
 // TODO: consider separating this into it's own file with interval as an argument
 // called 100 times a second on the server side
+// called 100 times a second on the server side
 setInterval(function () {
   const nsp = io.of('/')
   let pack = []
-  for (let id in io.sockets.sockets) {
-    const socket = nsp.connected[id]
+  for (const socket of nsp.sockets) {
+    const userData = socket[1].userData
     // only push sockets that have been initialised
-    if (socket.userData.shape !== undefined) {
-      pack.push({
-        id: socket.id,
-        shape: socket.userData.shape,
-        color: socket.userData.color,
-        position: socket.userData.position,
-        quaternion: socket.userData.quaternion,
-      })
+    if (userData) {
+			if (userData.shape !== undefined) {
+				pack.push({
+					id: socket[1].id,
+					shape: userData.shape,
+					color: userData.color,
+					position: userData.position,
+					quaternion: userData.quaternion,
+				})
+			}
     }
   }
   // send remote data array 'pack' to all clients

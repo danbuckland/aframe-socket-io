@@ -1,7 +1,7 @@
 // For use with Node versions 12.4 and above
 import express from 'express'
-import socketio from 'socket.io'
-import https from 'https'
+import { Server } from 'socket.io'
+import { createServer } from 'https'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import fs from 'fs'
@@ -26,22 +26,18 @@ app.use(
 app.use('/assets/', express.static(publicPath + '/assets/'))
 
 // start HTTPS server listening on port 2002
-let server = https
-  .createServer(
-    {
-      key: fs.readFileSync('localhost-key.pem'),
-      cert: fs.readFileSync('localhost.pem'),
-      requestCert: false,
-      rejectUnauthorized: false,
-    },
-    app
-  )
-  .listen(port, () => {
-    console.log('listening on *:2002')
-  })
+let server = createServer({
+	key: fs.readFileSync('localhost-key.pem'),
+	cert: fs.readFileSync('localhost.pem'),
+	requestCert: false,
+	rejectUnauthorized: false,
+}, app).listen(port, () => console.log(`Dev server listening on port ${port}`))
 
 // create io listener
-const io = socketio.listen(server)
+const io = new Server(server, {
+  cors: true,
+  origin: ['https://localhost:2002', 'https://0.0.0.0:2002', 'https://danb.io'],
+})
 
 // serve index.html when user requests '/'
 app.get('/', function (req, res) {
@@ -54,17 +50,19 @@ sockets(io)
 setInterval(function () {
   const nsp = io.of('/')
   let pack = []
-  for (let id in io.sockets.sockets) {
-    const socket = nsp.connected[id]
+  for (const socket of nsp.sockets) {
+    const userData = socket[1].userData
     // only push sockets that have been initialised
-    if (socket.userData.shape !== undefined) {
-      pack.push({
-        id: socket.id,
-        shape: socket.userData.shape,
-        color: socket.userData.color,
-        position: socket.userData.position,
-        quaternion: socket.userData.quaternion,
-      })
+    if (userData) {
+			if (userData.shape !== undefined) {
+				pack.push({
+					id: socket[1].id,
+					shape: userData.shape,
+					color: userData.color,
+					position: userData.position,
+					quaternion: userData.quaternion,
+				})
+			}
     }
   }
   // send remote data array 'pack' to all clients
