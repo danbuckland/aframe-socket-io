@@ -1,5 +1,3 @@
-import io from 'socket.io-client'
-
 // https://aframe.io/docs/1.0.0/core/systems.html
 AFRAME.registerSystem('game', {
   schema: {
@@ -8,13 +6,13 @@ AFRAME.registerSystem('game', {
   },
 
   init: function () {
-    this.socket = io()
+    this.socket = window.io
     this.throttledFunction = AFRAME.utils.throttle(this.everySecond, 1000, this)
 
     this.socket.on('connect', () => {
 			this.data.localPlayerId = this.socket.id
       let localPlayer = document.createElement('a-player')
-      localPlayer.setAttribute('id', this.socket.id)
+      localPlayer.setAttribute('id', `${this.socket.id}`)
       document.getElementById('camera').appendChild(localPlayer)
     })
 
