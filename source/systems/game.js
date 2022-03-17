@@ -108,6 +108,7 @@ AFRAME.registerSystem('game', {
         disconnectedIds = sceneIds.filter((x) => !remoteIds.includes(x))
         disconnectedIds.forEach((id, index) => {
           if (id !== gameData.localPlayerId && id !== 'destroyed') {
+            // BUG: Potential race condition where player is created immediately after being destroyed
             console.log(`Deleting already disconnected ${id}`)
             disconnectedEntity = document.getElementById(id)
             disconnectedEntity.parentNode.removeChild(disconnectedEntity)

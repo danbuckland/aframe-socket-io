@@ -35,7 +35,7 @@ module.exports = function (io) {
   
     socket.on('join', (roomName) => {
       console.log(`${socket.id} joined ${roomName}`)
-      socket.activeVideoCallRoom = roomName // Required currently for the part function
+      socket.activeVideoCallRoom = roomName // Required currently for the hangUp function
   
       /** When joining, each existing socket in the room should emit an 'add-peer'
        * event to the client containing the id of the joining socket and indicate
@@ -59,7 +59,7 @@ module.exports = function (io) {
       socket.join(roomName)
     })
   
-    socket.on('relayICECandidate', function ({ peer_id, ice_candidate }) {
+    socket.on('webrtc-ice-candidate', function ({ peer_id, ice_candidate }) {
       // console.log("["+ socket.id + "] relaying ICE candidate to [" + peer_id + "] ", ice_candidate);
       io.to(peer_id).emit('iceCandidate', {
         peer_id: socket.id,
@@ -68,7 +68,7 @@ module.exports = function (io) {
     })
   
     socket.on('relaySessionDescription', function ({ peer_id, session_description }) {
-      // console.log("["+ socket.id + "] relaying session description to [" + peer_id + "] ", session_description);
+      // console.log(session_description);
       io.to(peer_id).emit('sessionDescription', {
         peer_id: socket.id,
         session_description,
