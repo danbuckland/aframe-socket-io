@@ -45,8 +45,7 @@ AFRAME.registerSystem('video', {
     })
 
     this.socket.on('disconnect', () => {
-      /* Tear down all of our peer connections and remove all the
-       * media divs when we disconnect */
+      /* Tear down all of our peer connections when we disconnect */
       for (const peerId in this.peers) {
         this.peers[peerId].close()
       }
@@ -173,8 +172,7 @@ AFRAME.registerSystem('video', {
      * can begin trying to find the best path to one another on the net.
      */
     this.socket.on('iceCandidate', ({peer_id, ice_candidate}) => {
-      var peer = this.peers[peer_id]
-      peer.addIceCandidate(new RTCIceCandidate(ice_candidate))
+      this.peers[peer_id].addIceCandidate(new RTCIceCandidate(ice_candidate))
     })
 
     /**
@@ -241,6 +239,7 @@ AFRAME.registerSystem('video', {
     const mesh = this.localVideoComponent.getObject3D('mesh')
     mesh.material.map = this.videoTexture
     mesh.material.needsUpdate = true
+    mesh.material.color = new THREE.Color(0xffffdd)
     this.localStream = stream
     this.videoTexture = new THREE.VideoTexture(this.localStream)
     this.localVideoComponent.srcObject = stream
@@ -277,6 +276,7 @@ AFRAME.registerSystem('video', {
     remoteVideoTexture = new THREE.VideoTexture(remoteVideo)
     const mesh = remoteVideoComponent.getObject3D('mesh')
     mesh.material.map = remoteVideoTexture
+    mesh.material.color = new THREE.Color(0xffffdd)
     mesh.material.needsUpdate = true
     remoteVideoComponent.srcObject = event.streams[0]
   },

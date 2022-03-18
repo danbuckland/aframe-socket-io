@@ -24,18 +24,17 @@ AFRAME.registerComponent('player', {
   },
 
   init: function () {
-    const colors = [
-      '#3A7D44',
-			'#ffffdd',
+    const COLORS = [
+      '#3a7d44',
       '#ffc2c5',
       '#e3bac6',
       '#bc9ec1',
       '#dbf4a7',
       '#9dcdc0',
       '#ff934f',
-      '#507DBC',
+      '#507dbc',
     ]
-    const shapes = ['octahedron', 'dodecahedron', 'box', 'tetrahedron']
+    const SHAPES = ['octahedron', 'dodecahedron', 'box', 'tetrahedron']
     let el = this.el
     let color = this.data.color
     let shape = this.data.shape
@@ -46,8 +45,8 @@ AFRAME.registerComponent('player', {
 
     // if player component is local, set some values for the player
     if (local) {
-      color = colors[1] //Math.floor(Math.random() * colors.length)
-      shape = shapes[1]
+      color = COLORS[Math.floor(Math.random() * COLORS.length)] //Math.floor(Math.random() * colors.length)
+      shape = SHAPES[1]
 			el.setAttribute('rotation', '0 90 0')
     }
 
