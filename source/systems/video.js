@@ -14,29 +14,14 @@ AFRAME.registerSystem('video', {
     this.iceServers = {
       iceServers: [
         { urls: 'stun:stun.l.google.com:19302' },
-        // { urls: 'stun:stun1.l.google.com:19302' },
+        { urls: 'stun:stun1.l.google.com:19302' },
         // { urls: 'stun:stun2.l.google.com:19302' },
         // { urls: 'stun:stun3.l.google.com:19302' },
-        { urls: 'stun:stun4.l.google.com:19302' },
+        // { urls: 'stun:stun4.l.google.com:19302' },
       ],
     }
 
     this.peers = {} /* keep track of our peer connections, indexed by peer_id (aka socket.io id) */
-
-    // TODO: Debugging/test tools to be removed
-    window.addEventListener('keypress', (e) => {
-      if (e.key === 'x') {
-        console.log('disconnecting...')
-        this.socket.close()
-      }
-    })
-
-    window.addEventListener('keypress', (e) => {
-      if (e.key === 'c') {
-        console.log('connecting...')
-        this.socket.connect()
-      }
-    })
 
     /* On connection, set the local stream to the player object and then join the video-call */
     this.socket.on('connect', async () => {
@@ -87,33 +72,25 @@ AFRAME.registerSystem('video', {
       
       /* Only one side of the peer connection should create the
       * offer, the signaling server picks one to be the offerer.
-      * The other user will get a 'sessionDescription' event and will
-      * create an offer, then send back an answer 'sessionDescription' to us
+      * The other user will get a 'session-description' event and will
+      * create an offer, then send back an answer 'session-description' to us
       */
-     if (config.should_create_offer) {
-       console.log('Creating RTC offer to ', peer_id)
-       let sessionDescription = rtcPeerConnection.createOffer()
-       rtcPeerConnection.createOffer(
-         (local_description) => {
-            // console.log('Local offer description is: ', local_description)
-            rtcPeerConnection.setLocalDescription(
-              local_description,
-              () => {
-                this.socket.emit('relaySessionDescription', {
-                  peer_id: peer_id,
-                  session_description: local_description,
-                })
-                console.log('Offer setLocalDescription succeeded')
-              },
-              () => {
-                Alert('Offer setLocalDescription failed!')
-              }
-            )
-          },
-          (error) => {
-            console.log('Error sending offer: ', error)
-          }
-        )
+      if (config.should_create_offer) {
+        console.log('Creating RTC offer to ', peer_id)
+        rtcPeerConnection.createOffer().then((local_description) => {
+          // console.log('Local offer description is: ', local_description)
+          rtcPeerConnection.setLocalDescription(local_description).then(() => {
+              this.socket.emit('relay-session-description', {
+                peer_id: peer_id,
+                session_description: local_description,
+              })
+              console.log('Offer setLocalDescription succeeded')
+            }).catch(() => {
+              Alert('Offer setLocalDescription failed!')
+            })
+        }).catch((error) => {
+          console.log('Error sending offer: ', error)
+        })
       }
     })
 
@@ -123,7 +100,7 @@ AFRAME.registerSystem('video', {
      * the 'offerer' sends a description to the 'answerer' (with type
      * "offer"), then the answerer sends one back (with type "answer").
      */
-    this.socket.on('sessionDescription', ({peer_id, session_description}) => {
+    this.socket.on('session-description', ({peer_id, session_description}) => {
       console.log(`Remote description received for ${peer_id}: ${session_description}`)
       const peer = this.peers[peer_id]
       const remote_description = session_description
@@ -142,7 +119,7 @@ AFRAME.registerSystem('video', {
                 peer.setLocalDescription(
                   local_description,
                   () => {
-                    this.socket.emit('relaySessionDescription', {
+                    this.socket.emit('relay-session-description', {
                       peer_id: peer_id,
                       session_description: local_description,
                     })
@@ -171,7 +148,7 @@ AFRAME.registerSystem('video', {
      * The offerer will send a number of ICE Candidate blobs to the answerer so they
      * can begin trying to find the best path to one another on the net.
      */
-    this.socket.on('iceCandidate', ({peer_id, ice_candidate}) => {
+    this.socket.on('ice-candidate', ({peer_id, ice_candidate}) => {
       this.peers[peer_id].addIceCandidate(new RTCIceCandidate(ice_candidate))
     })
 

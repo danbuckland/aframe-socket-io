@@ -21,7 +21,7 @@ AFRAME.registerSystem('game', {
     })
 
     // Remove remote players who disconnect
-    this.socket.on('deletePlayer', (data) => {
+    this.socket.on('delete-player', (data) => {
       console.log(`Player ${data.id} disconnected`)
       let disconnectedPlayer = document.getElementById(data.id)
       if (disconnectedPlayer) {

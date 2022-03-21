@@ -10,7 +10,7 @@ module.exports = function (io) {
 
     // on disconnect, let all other sockets know which socket disconnected
     socket.on('disconnect', function () {
-      socket.broadcast.emit('deletePlayer', { id: socket.id })
+      socket.broadcast.emit('delete-player', { id: socket.id })
       console.log(`${socket.id} disconnected`)
     })
 
@@ -61,15 +61,15 @@ module.exports = function (io) {
   
     socket.on('webrtc-ice-candidate', function ({ peer_id, ice_candidate }) {
       // console.log("["+ socket.id + "] relaying ICE candidate to [" + peer_id + "] ", ice_candidate);
-      io.to(peer_id).emit('iceCandidate', {
+      io.to(peer_id).emit('ice-candidate', {
         peer_id: socket.id,
         ice_candidate,
       })
     })
   
-    socket.on('relaySessionDescription', function ({ peer_id, session_description }) {
+    socket.on('relay-session-description', function ({ peer_id, session_description }) {
       // console.log(session_description);
-      io.to(peer_id).emit('sessionDescription', {
+      io.to(peer_id).emit('session-description', {
         peer_id: socket.id,
         session_description,
       })
