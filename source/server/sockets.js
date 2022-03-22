@@ -1,6 +1,6 @@
 // when a client connects, log it on the server and spawn an object for others
 module.exports = function (io) {
-  io.on('connection', function (socket) {
+  io.on('connection', (socket) => {
     // define custom user data for position and direction
     socket.userData = {
       position: { x: 0, y: 0, z: 0 },
@@ -9,13 +9,14 @@ module.exports = function (io) {
     console.log(`${socket.id} connected`)
 
     // on disconnect, let all other sockets know which socket disconnected
-    socket.on('disconnect', function () {
+    socket.on('disconnect', () => {
       socket.broadcast.emit('delete-player', { id: socket.id })
       console.log(`${socket.id} disconnected`)
+      hangUp(socket.activeVideoCallRoom)
     })
 
     // when a client initialises, set the data on the socket to match
-    socket.on('init', function (data) {
+    socket.on('init', (data) => {
       socket.userData.shape = data.shape
       socket.userData.color = data.color
       socket.userData.position = data.position
@@ -23,14 +24,9 @@ module.exports = function (io) {
     })
 		
     // update user data that changes frame to frame
-    socket.on('update', function (data) {
+    socket.on('update', (data) => {
       socket.userData.position = data.position
       socket.userData.quaternion = data.quaternion
-    })
-
-    socket.on('disconnect', function () {
-      console.log(`${socket.id} disconnected`)
-      hangUp(socket.activeVideoCallRoom)
     })
   
     socket.on('join', (roomName) => {
@@ -59,7 +55,7 @@ module.exports = function (io) {
       socket.join(roomName)
     })
   
-    socket.on('webrtc-ice-candidate', function ({ peer_id, ice_candidate }) {
+    socket.on('webrtc-ice-candidate', ({ peer_id, ice_candidate }) => {
       // console.log("["+ socket.id + "] relaying ICE candidate to [" + peer_id + "] ", ice_candidate);
       io.to(peer_id).emit('ice-candidate', {
         peer_id: socket.id,
@@ -67,8 +63,7 @@ module.exports = function (io) {
       })
     })
   
-    socket.on('relay-session-description', function ({ peer_id, session_description }) {
-      // console.log(session_description);
+    socket.on('relay-session-description', ({ peer_id, session_description }) => {
       io.to(peer_id).emit('session-description', {
         peer_id: socket.id,
         session_description,
