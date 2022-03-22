@@ -1,4 +1,4 @@
-// FROM https://github.com/gmenezesg/webrtc-group-chat
+// Inspired by the code samples at https://github.com/gmenezesg/webrtc-group-chat
 
 AFRAME.registerSystem('video', {
   schema: {},
@@ -30,7 +30,7 @@ AFRAME.registerSystem('video', {
     })
 
     this.socket.on('disconnect', () => {
-      /* Tear down all of our peer connections when we disconnect */
+      /** Close all peer connections on disconnect */
       for (const peerId in this.peers) {
         this.peers[peerId].close()
       }
@@ -43,9 +43,7 @@ AFRAME.registerSystem('video', {
      * in the channel you will connect directly to the other 5, so there will be a total of 15
      * connections in the network).
      */
-    this.socket.on('add-peer', async (config) => {
-      const peerId = config.peer_id
-
+    this.socket.on('add-peer', async ({ peerId, shouldCreateOffer }) => {
       if (peerId in this.peers) return // Possible if there were multiple channels
 
       const rtcPeerConnection = new RTCPeerConnection(this.iceServers)
@@ -54,7 +52,7 @@ AFRAME.registerSystem('video', {
       rtcPeerConnection.onicecandidate = (event) => this.sendIceCandidate(event, peerId)
       rtcPeerConnection.ontrack = (event) => this.setRemoteStream(event, peerId)
 
-      if (config.should_create_offer) {
+      if (shouldCreateOffer) {
         await this.createOffer(rtcPeerConnection, peerId)
       }
     })
@@ -65,13 +63,12 @@ AFRAME.registerSystem('video', {
      * the 'offerer' sends a description to the 'answerer' (with type
      * "offer"), then the answerer sends one back (with type "answer").
      */
-    this.socket.on('session-description', async ({ peer_id, session_description }) => {
-        const peer = this.peers[peer_id]
-        const remoteDescription = session_description
+    this.socket.on('session-description', async ({ peerId, sessionDescription }) => {
+        const peer = this.peers[peerId]
 
-        peer.setRemoteDescription(new RTCSessionDescription(remoteDescription))
-        if (remoteDescription.type === 'offer') {
-          await this.createAnswer(peer, peer_id)
+        peer.setRemoteDescription(new RTCSessionDescription(sessionDescription))
+        if (sessionDescription.type === 'offer') {
+          await this.createAnswer(peer, peerId)
         }
       }
     )
@@ -80,8 +77,8 @@ AFRAME.registerSystem('video', {
      * The offerer will send a number of ICE Candidate blobs to the answerer so they
      * can begin trying to find the best path to one another on the net.
      */
-    this.socket.on('ice-candidate', ({ peer_id, ice_candidate }) => {
-      this.peers[peer_id].addIceCandidate(new RTCIceCandidate(ice_candidate))
+    this.socket.on('ice-candidate', ({ peerId, iceCandidate }) => {
+      this.peers[peerId].addIceCandidate(new RTCIceCandidate(iceCandidate))
     })
 
     /**
@@ -94,12 +91,10 @@ AFRAME.registerSystem('video', {
      * signaling_socket.on('disconnect') code will kick in and tear down
      * all the peer sessions.
      */
-    this.socket.on('remove-peer', (config) => {
-      let peer_id = config.peer_id
+    this.socket.on('remove-peer', ({ peerId }) => {
+      if (peerId in this.peers) this.peers[peerId].close()
 
-      if (peer_id in this.peers) this.peers[peer_id].close()
-
-      delete this.peers[peer_id]
+      delete this.peers[peerId]
     })
   },
 
@@ -190,8 +185,8 @@ AFRAME.registerSystem('video', {
   sendIceCandidate: function (event, peerId) {
     if (event.candidate) {
       this.socket.emit('webrtc-ice-candidate', {
-        peer_id: peerId,
-        ice_candidate: {
+        peerId,
+        iceCandidate: {
           sdpMLineIndex: event.candidate.sdpMLineIndex,
           candidate: event.candidate.candidate,
         },
@@ -209,8 +204,8 @@ AFRAME.registerSystem('video', {
     }
 
     this.socket.emit('relay-session-description', {
-      peer_id: peerId,
-      session_description: sessionDescription,
+      peerId,
+      sessionDescription,
     })
   },
 
@@ -224,8 +219,8 @@ AFRAME.registerSystem('video', {
     }
 
     this.socket.emit('relay-session-description', {
-      peer_id: peerId,
-      session_description: sessionDescription,
+      peerId,
+      sessionDescription,
     })
   },
 

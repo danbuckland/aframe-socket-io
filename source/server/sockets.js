@@ -8,7 +8,7 @@ module.exports = function (io) {
     }
     console.log(`${socket.id} connected`)
 
-    // on disconnect, let all other sockets know which socket disconnected
+    // on disconnect, let all other sockets know which socket disconnected and hang up
     socket.on('disconnect', () => {
       socket.broadcast.emit('delete-player', { id: socket.id })
       console.log(`${socket.id} disconnected`)
@@ -40,33 +40,35 @@ module.exports = function (io) {
        * an offer with each peer.
        */
   
-      // Emit 'add-peer' event from every other socket in the channel,
-      const clients = io.sockets.adapter.rooms.get(roomName)
-      socket.to(roomName).emit('add-peer', {
-        peer_id: socket.id,
-        should_create_offer: false,
-      })
       // Create an offer from the joining socket to everyone else in the room
+      const clients = io.sockets.adapter.rooms.get(roomName)
       if (clients) {
         clients.forEach((id) => {
-          socket.emit('add-peer', { peer_id: id, should_create_offer: true })
+          socket.emit('add-peer', { peerId: id, shouldCreateOffer: true })
         })
       }
+
+      // Tell every body else in the room to add this peer
+      socket.to(roomName).emit('add-peer', {
+        peerId: socket.id,
+        shouldCreateOffer: false,
+      })
+
+      // Finally join the room so future joiners connect to this client
       socket.join(roomName)
     })
   
-    socket.on('webrtc-ice-candidate', ({ peer_id, ice_candidate }) => {
-      // console.log("["+ socket.id + "] relaying ICE candidate to [" + peer_id + "] ", ice_candidate);
-      io.to(peer_id).emit('ice-candidate', {
-        peer_id: socket.id,
-        ice_candidate,
+    socket.on('webrtc-ice-candidate', ({ peerId, iceCandidate }) => {
+      io.to(peerId).emit('ice-candidate', {
+        peerId: socket.id,
+        iceCandidate,
       })
     })
   
-    socket.on('relay-session-description', ({ peer_id, session_description }) => {
-      io.to(peer_id).emit('session-description', {
-        peer_id: socket.id,
-        session_description,
+    socket.on('relay-session-description', ({ peerId, sessionDescription }) => {
+      io.to(peerId).emit('session-description', {
+        peerId: socket.id,
+        sessionDescription,
       })
     })
 
@@ -82,10 +84,10 @@ module.exports = function (io) {
       console.log(`${socket.id} hanging up on ${roomName}`)
       const clients = io.sockets.adapter.rooms.get(roomName)
       if (clients) {
-        socket.to(roomName).emit('remove-peer', { peer_id: socket.id })
+        socket.to(roomName).emit('remove-peer', { peerId: socket.id })
         clients.forEach((id) => {
           // Only required if the user can leave the video chat but not the room
-          socket.emit('remove-peer', { peer_id: id })
+          socket.emit('remove-peer', { peerId: id })
         })
       }
     }
