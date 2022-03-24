@@ -6,6 +6,7 @@ AFRAME.registerSystem('video', {
   init: function () {
     this.throttledFunction = AFRAME.utils.throttle(this.everyFewSeconds, 3000, this)
     this.socket = window.io
+    this.localStream
     const DEFAULT_CHANNEL = 'video-call'
     const MEDIA_CONSTRAINTS = {
       audio: false,
@@ -23,7 +24,7 @@ AFRAME.registerSystem('video', {
 
     this.peers = {} // Keep track of peers connected to this client
 
-    /* On connection, set the local stream to the player object and then join the video-call */
+    /** On connection, set the local stream to the player object and join the video-call */
     this.socket.on('connect', async () => {
       await this.setLocalStream(MEDIA_CONSTRAINTS)
       this.socket.emit('join', DEFAULT_CHANNEL)
@@ -45,7 +46,6 @@ AFRAME.registerSystem('video', {
      */
     this.socket.on('add-peer', async ({ peerId, shouldCreateOffer }) => {
       if (peerId in this.peers) return // Possible if there were multiple channels
-
       const rtcPeerConnection = new RTCPeerConnection(this.iceServers)
       this.peers[peerId] = rtcPeerConnection
       this.addLocalTracks(rtcPeerConnection)
@@ -108,13 +108,12 @@ AFRAME.registerSystem('video', {
 
   setLocalStream: async function (mediaConstraints) {
     this.localVideoComponent = document.getElementById(this.socket.id)
-    let stream
     try {
-      stream = await navigator.mediaDevices.getUserMedia(mediaConstraints)
+      this.localStream = await navigator.mediaDevices.getUserMedia(mediaConstraints)
     } catch (error) {
-      return console.error('Could not get user media', error)
+      console.error('Could not get user media', error)
     }
-
+    // If video element doesn't already exist, create it
     if (!this.video) {
       const video = document.createElement('video')
       video.setAttribute('autoplay', true)
@@ -123,12 +122,12 @@ AFRAME.registerSystem('video', {
       this.video = video
     }
 
-    this.video.srcObject = stream
+    this.video.srcObject = this.localStream
     this.video.muted = true
 
     const playResult = this.video.play()
     if (playResult instanceof Promise) {
-      playResult.catch((e) => console.log(`Error play video stream`, e))
+      playResult.catch((e) => console.log(`Error playing video stream`, e))
     }
 
     if (this.videoTexture) {
@@ -141,15 +140,14 @@ AFRAME.registerSystem('video', {
     mesh.material.map = this.videoTexture
     mesh.material.needsUpdate = true
     mesh.material.color = new THREE.Color(0xffffdd)
-    this.localStream = stream
-    this.videoTexture = new THREE.VideoTexture(this.localStream)
-    this.localVideoComponent.srcObject = stream
+    this.localVideoComponent.srcObject = this.localStream
   },
 
   setRemoteStream: function (event, peerId) {
+    console.log('Called setRemoteStream')
     const remoteVideoComponent = document.getElementById(peerId)
     if (!remoteVideoComponent) {
-      return console.log(`No player mesh created for ${peerId}`)
+      return console.error(`No player mesh created for ${peerId}`)
     }
     const remoteStream = event.streams[0]
     let remoteVideoTexture = null
@@ -225,7 +223,9 @@ AFRAME.registerSystem('video', {
   },
 
   addLocalTracks: function (rtcPeerConnection) {
-    if (!this.localStream) return
+    if (!this.localStream) {
+      return console.log('No local stream')
+    }
 
     this.localStream.getTracks().forEach((track) => {
       rtcPeerConnection.addTrack(track, this.localStream)
