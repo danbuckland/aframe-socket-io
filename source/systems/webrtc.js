@@ -1,6 +1,6 @@
 // Inspired by the code samples at https://github.com/gmenezesg/webrtc-group-chat
 
-AFRAME.registerSystem('video', {
+AFRAME.registerSystem('webrtc', {
   schema: {},
 
   init: function () {
@@ -144,7 +144,6 @@ AFRAME.registerSystem('video', {
   },
 
   setRemoteStream: function (event, peerId) {
-    console.log('Called setRemoteStream')
     const remoteVideoComponent = document.getElementById(peerId)
     if (!remoteVideoComponent) {
       return console.error(`No player mesh created for ${peerId}`)
