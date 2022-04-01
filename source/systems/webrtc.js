@@ -31,7 +31,7 @@ AFRAME.registerSystem('webrtc', {
     })
 
     this.socket.on('disconnect', () => {
-      /** Close all peer connections on disconnect */
+      // Close all peer connections on disconnect
       for (const peerId in this.peers) {
         this.peers[peerId].close()
       }
