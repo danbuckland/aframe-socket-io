@@ -9,7 +9,7 @@ import sockets from './sockets.js'
 const app = express()
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const publicPath = path.join(__dirname, '..', '..', 'public')
-const port = process.env.PORT || 443
+const port = process.env.PORT || 8080
 
 if (process.env.NODE_ENV !== 'production') {
   console.log(`Invalid NODE_ENV, please use 'production'`)
