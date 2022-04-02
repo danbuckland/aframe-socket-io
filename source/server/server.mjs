@@ -9,7 +9,7 @@ import sockets from './sockets.js'
 const app = express()
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const publicPath = path.join(__dirname, '..', '..', 'public')
-const port = process.env.PORT || 2002
+const port = process.env.PORT || 443
 
 if (process.env.NODE_ENV !== 'production') {
   console.log(`Invalid NODE_ENV, please use 'production'`)
@@ -25,7 +25,7 @@ let server = app
 // create io listener
 const io = new Server(server, {
   cors: true,
-  origin: ['https://localhost:2002', 'https://0.0.0.0:2002', 'https://35.176.255.155:*', 'http://35.176.255.155:*', 'https://danb.io'],
+  origin: ['https://35.176.255.155:*', 'http://35.176.255.155:*', 'https://danb.io'],
 })
 
 // serve index.html when user requests '/'
