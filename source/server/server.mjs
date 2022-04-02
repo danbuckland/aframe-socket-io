@@ -25,7 +25,7 @@ let server = app
 // create io listener
 const io = new Server(server, {
   cors: true,
-  origin: ['https://localhost:7070', 'https://0.0.0.0:7070', 'https://danb.io'],
+  origin: ['*']
 })
 
 // serve index.html when user requests '/'
