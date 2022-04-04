@@ -4,7 +4,7 @@ AFRAME.registerSystem('webrtc', {
   schema: {},
 
   init: function () {
-    // this.throttledFunction = AFRAME.utils.throttle(this.everyFewSeconds, 3000, this)
+    this.throttledFunction = AFRAME.utils.throttle(this.everyFewSeconds, 3000, this)
     this.socket = window.io
     this.localStream
     const DEFAULT_CHANNEL = 'video-call'
@@ -99,7 +99,7 @@ AFRAME.registerSystem('webrtc', {
   },
 
   tick: function (d, dt) {
-    this.throttledFunction()
+    // this.throttledFunction()
   },
 
   everyFewSeconds: function () {
