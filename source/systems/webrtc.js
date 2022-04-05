@@ -9,7 +9,7 @@ AFRAME.registerSystem('webrtc', {
     this.localStream
     const DEFAULT_CHANNEL = 'video-call'
     const MEDIA_CONSTRAINTS = {
-      audio: false,
+      audio: true,
       video: true,
     }
     this.iceServers = {
