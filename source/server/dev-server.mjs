@@ -9,6 +9,7 @@ import webpack from 'webpack'
 import webpackDevMiddleware from 'webpack-dev-middleware'
 import config from '../../webpack.config.js'
 import sockets from './sockets.js'
+import 'log-timestamp'
 
 const app = express()
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
