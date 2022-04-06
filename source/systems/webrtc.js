@@ -38,6 +38,17 @@ AFRAME.registerSystem('webrtc', {
           }
         }
       })
+      window.addEventListener('keypress', (e) => {
+        if (e.key === 'v') {
+          const videoTrack = this.localStream.getTracks().find(track => track.kind === 'video')
+          console.log(videoTrack)
+          if (videoTrack.enabled) {
+            videoTrack.enabled = false
+          } else {
+            videoTrack.enabled = true
+          }
+        }
+      })
       this.socket.emit('join', DEFAULT_CHANNEL)
     })
 
