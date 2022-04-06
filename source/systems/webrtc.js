@@ -27,6 +27,17 @@ AFRAME.registerSystem('webrtc', {
     /** On connection, set the local stream to the player object and join the video-call */
     this.socket.on('connect', async () => {
       await this.setLocalStream(MEDIA_CONSTRAINTS)
+      window.addEventListener('keypress', (e) => {
+        if (e.key === 'm') {
+          const audioTrack = this.localStream.getTracks().find(track => track.kind === 'audio')
+          console.log(audioTrack)
+          if (audioTrack.enabled) {
+            audioTrack.enabled = false
+          } else {
+            audioTrack.enabled = true
+          }
+        }
+      })
       this.socket.emit('join', DEFAULT_CHANNEL)
     })
 
