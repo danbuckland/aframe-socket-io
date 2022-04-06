@@ -30,12 +30,12 @@ AFRAME.registerSystem('webrtc', {
       window.addEventListener('keypress', (e) => {
         if (e.key === 'm') {
           const audioTrack = this.localStream.getTracks().find(track => track.kind === 'audio')
-          console.log(audioTrack)
           if (audioTrack.enabled) {
             audioTrack.enabled = false
           } else {
             audioTrack.enabled = true
           }
+          console.log(`${audioTrack.enabled ? 'Microphone muted' : 'Microphone unmuted'}`)
         }
       })
       window.addEventListener('keypress', (e) => {
