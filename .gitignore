@@ -5,6 +5,7 @@ node_modules/
 references/
 public/dist/
 .elasticbeanstalk/
+yarn.lock
 # Elastic Beanstalk Files
 .elasticbeanstalk/*
 !.elasticbeanstalk/*.cfg.yml
