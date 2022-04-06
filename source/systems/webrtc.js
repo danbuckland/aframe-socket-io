@@ -35,7 +35,7 @@ AFRAME.registerSystem('webrtc', {
           } else {
             audioTrack.enabled = true
           }
-          console.log(`${audioTrack.enabled ? 'Microphone muted' : 'Microphone unmuted'}`)
+          console.log(`${audioTrack.enabled ? 'Microphone unmuted' : 'Microphone muted'}`)
         }
       })
       window.addEventListener('keypress', (e) => {
