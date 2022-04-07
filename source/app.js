@@ -9,5 +9,5 @@ import './systems/game'
 import './systems/webrtc'
 
 window.CLOCK = new THREE.Clock()
-// window.io = io(`wss://${window.location.hostname}:2002`) // LOCAL
-window.io = io(`wss://${window.location.hostname}`) // AWS
+window.io = io(`wss://${window.location.hostname}:2002`) // LOCAL
+// window.io = io(`wss://${window.location.hostname}`) // PRODUCTION
