@@ -1,38 +1,26 @@
 // For use with Node versions 12.4 and above
 import express from 'express'
 import { Server } from 'socket.io'
-import { createServer } from 'https'
 import path from 'path'
 import { fileURLToPath } from 'url'
-import fs from 'fs'
-import webpack from 'webpack'
-import webpackDevMiddleware from 'webpack-dev-middleware'
-import config from '../../webpack.config.js'
+import sslRedirect from 'heroku-ssl-redirect'
 import sockets from './sockets.js'
-import 'log-timestamp'
 
 const app = express()
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const publicPath = path.join(__dirname, '..', '..', 'public')
 const port = process.env.PORT || 2002
 
-let webpackConfig = config()
+if (process.env.NODE_ENV !== 'production') {
+  console.log(`Invalid NODE_ENV, please use 'production'`)
+}
 
-const compiler = webpack(webpackConfig)
-app.use(
-  webpackDevMiddleware(compiler, {
-    publicPath: webpackConfig.output.publicPath,
-  })
-)
-app.use('/assets/', express.static(publicPath + '/assets/'))
-
-// start HTTPS server listening on port 2002
-let server = createServer({
-	key: fs.readFileSync('privkey.pem'),
-	cert: fs.readFileSync('fullchain.pem'),
-	requestCert: false,
-	rejectUnauthorized: false,
-}, app).listen(port, () => console.log(`Dev server listening on port ${port}`))
+console.log('Running in PRODUCTION, this will NOT work locally')
+let server = app
+  .use(express.static(publicPath))
+  .set('assets', path.join(publicPath, 'assets'))
+  .get('/', (req, res) => res.sendFile(path.join(publicPath, 'index.html')))
+  .listen(port, () => console.log(`Listening on port ${port}`))
 
 // create io listener
 const io = new Server(server, {
@@ -47,6 +35,7 @@ app.get('/', function (req, res) {
 
 sockets(io)
 
+// TODO: consider separating this into it's own file with interval as an argument
 // called 100 times a second on the server side
 setInterval(function () {
   const nsp = io.of('/')

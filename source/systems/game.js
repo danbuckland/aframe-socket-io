@@ -1,5 +1,3 @@
-import io from 'socket.io-client'
-
 // https://aframe.io/docs/1.0.0/core/systems.html
 AFRAME.registerSystem('game', {
   schema: {
@@ -8,13 +6,13 @@ AFRAME.registerSystem('game', {
   },
 
   init: function () {
-    this.socket = io()
+    this.socket = window.io
     this.throttledFunction = AFRAME.utils.throttle(this.everySecond, 1000, this)
 
     this.socket.on('connect', () => {
 			this.data.localPlayerId = this.socket.id
       let localPlayer = document.createElement('a-player')
-      localPlayer.setAttribute('id', this.socket.id)
+      localPlayer.setAttribute('id', `${this.socket.id}`)
       document.getElementById('camera').appendChild(localPlayer)
     })
 
@@ -23,7 +21,7 @@ AFRAME.registerSystem('game', {
     })
 
     // Remove remote players who disconnect
-    this.socket.on('deletePlayer', (data) => {
+    this.socket.on('delete-player', (data) => {
       console.log(`Player ${data.id} disconnected`)
       let disconnectedPlayer = document.getElementById(data.id)
       if (disconnectedPlayer) {
@@ -110,6 +108,7 @@ AFRAME.registerSystem('game', {
         disconnectedIds = sceneIds.filter((x) => !remoteIds.includes(x))
         disconnectedIds.forEach((id, index) => {
           if (id !== gameData.localPlayerId && id !== 'destroyed') {
+            // BUG: Potential race condition where player is created immediately after being destroyed
             console.log(`Deleting already disconnected ${id}`)
             disconnectedEntity = document.getElementById(id)
             disconnectedEntity.parentNode.removeChild(disconnectedEntity)
