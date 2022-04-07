@@ -37,7 +37,7 @@ let server = createServer({
 // create io listener
 const io = new Server(server, {
   cors: true,
-  origin: ['https://localhost:2002', 'https://0.0.0.0:2002', 'https://danb.io'],
+  origin: ['https://localhost:2002', 'https://0.0.0.0:2002', 'https://webxr.work'],
 })
 
 // serve index.html when user requests '/'

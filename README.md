@@ -1,5 +1,7 @@
-# A-Frame Socket.IO Multiplayer Experience
-A simple demonstration multiplayer experience using [A-Frame](https://aframe.io/) and [Socket.IO](https://socket.io/).
+# A-Frame Socket.IO WebRTC Multiplayer Experience
+A simple video conference multiplayer experience using [A-Frame](https://aframe.io/), [Socket.IO](https://socket.io/) and WebRTC.
+
+See it running at https://webxr.work/.
 
 ## Building and running
 In order to run locally, you will need to generate local ssh keys. Do this by running `mkcert localhost`.
