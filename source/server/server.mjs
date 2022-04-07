@@ -32,7 +32,7 @@ let server = createServer({
 	cert: fs.readFileSync('fullchain.pem'),
 	requestCert: false,
 	rejectUnauthorized: false,
-}, app).listen(port, () => console.log(`Dev server listening on port ${port}`))
+}, app).listen(port, () => console.log(`Production server listening on port ${port}`))
 
 // create io listener
 const io = new Server(server, {
