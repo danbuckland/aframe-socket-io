@@ -48,6 +48,7 @@ AFRAME.registerSystem('webrtc', {
           }
         }
       })
+      console.log(`You have joined the call, press 'm' to mute and unmute, 'v' to turn off video`)
       this.socket.emit('join', DEFAULT_CHANNEL)
     })
 
