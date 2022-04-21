@@ -42,6 +42,7 @@ AFRAME.registerComponent('player', {
     let position = this.data.position
     let quaternion = new THREE.Quaternion()
     this.game = this.el.sceneEl.systems.game
+    this.webrtc = this.el.sceneEl.systems.webrtc
 
     // if player component is local, set some values for the player
     if (local) {
@@ -60,10 +61,50 @@ AFRAME.registerComponent('player', {
     // emit 'init' event to share info about the player if player is local
     if (local) {
       console.log(`Local player ${this.game.data.localPlayerId} joined as a ${color} ${shape}`)
+      el.sceneEl.addEventListener('local-stream', (e) => {
+        this.renderLocalStream()
+      })
       this.initSocket(shape, color, position, quaternion)
     } else {
       console.log(`Player ${this.data.id} joined as a ${color} ${shape}`)
+      el.sceneEl.addEventListener(`remote-stream-${this.data.id}`, (e) => {
+        this.renderRemoteStream(this.data.id)
+      })
     }
+
+  },
+
+  renderLocalStream: function () {
+    const localStream = this.webrtc.localStream
+    this.renderVideoTexture(localStream, true)
+  },
+
+  renderRemoteStream: function (peerId) {
+    const remoteStream = this.webrtc.remoteStreams[peerId]
+    this.renderVideoTexture(remoteStream, false)
+  },
+
+  renderVideoTexture: function (videoStream, isLocal) {
+    if (!this.video) {
+      const video = document.createElement('video')
+      video.setAttribute('autoplay', true)
+      video.setAttribute('playsinline', true)
+      this.video = video
+    }
+    this.video.srcObject = videoStream
+    if (isLocal) {
+      this.video.muted = true
+    }
+
+    const playResult = this.video.play()
+    if (playResult instanceof Promise) {
+      playResult.catch((e) => console.log(`Error playing video stream`, e))
+    }
+
+    const mesh = this.el.getObject3D('mesh')
+    mesh.material.map = new THREE.VideoTexture(this.video)
+    mesh.material.needsUpdate = true
+    mesh.material.color = new THREE.Color(0xffffdd)
   },
 
   initSocket: function (shape, color, position, quaternion) {
