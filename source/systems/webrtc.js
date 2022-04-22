@@ -4,7 +4,6 @@ AFRAME.registerSystem('webrtc', {
   schema: {},
 
   init: function () {
-    this.throttledFunction = AFRAME.utils.throttle(this.everyFewSeconds, 3000, this)
     this.socket = window.io
     this.localStream
     this.streams = {}
@@ -25,7 +24,7 @@ AFRAME.registerSystem('webrtc', {
 
     this.peers = {} // Keep track of peers connected to this client
 
-    /** On connection, set the local stream to the player object and join the video-call */
+    // On connection, create a local stream and join the video-call
     this.socket.on('connect', async () => {
       await this.setLocalStream(MEDIA_CONSTRAINTS)
       window.addEventListener('keypress', (e) => {
@@ -54,8 +53,8 @@ AFRAME.registerSystem('webrtc', {
     })
 
     /**
-     * When we join a group, our signaling server will send out 'add-peer' events to each pair
-     * of users in the group (creating a fully-connected graph of users, ie if there are 6 people
+     * On joining a group, the signaling server will send out 'add-peer' events to each pair
+     * of users in the group (creating a fully-connected graph of users, i.e. if there are 6 people
      * in the channel you will connect directly to the other 5, so there will be a total of 15
      * connections in the network).
      */
@@ -73,14 +72,13 @@ AFRAME.registerSystem('webrtc', {
     })
 
     /**
-     * Peers exchange session descriptions which contains information
-     * about their audio / video settings and that sort of stuff. First
-     * the 'offerer' sends a description to the 'answerer' (with type
-     * "offer"), then the answerer sends one back (with type "answer").
+     * Peers exchange sessionDescription objects which contain an SDP with information about their
+     * audio/video settings and other useful SDP stuff. First the 'offerer' sends a description to 
+     * the 'answerer' (with type "offer"), then the answerer sends one back (with type "answer").
      */
     this.socket.on('session-description', async ({ peerId, sessionDescription }) => {
         const peer = this.peers[peerId]
-
+        console.log(sessionDescription)
         peer.setRemoteDescription(new RTCSessionDescription(sessionDescription))
         if (sessionDescription.type === 'offer') {
           await this.createAnswer(peer, peerId)
@@ -89,22 +87,21 @@ AFRAME.registerSystem('webrtc', {
     )
 
     /**
-     * The offerer will send a number of ICE Candidate blobs to the answerer so they
-     * can begin trying to find the best path to one another on the net.
+     * The offerer will send a number of ICE Candidate blobs to the answerer so they can begin 
+     * trying to find the best path to one another over the internet.
      */
     this.socket.on('ice-candidate', ({ peerId, iceCandidate }) => {
       this.peers[peerId].addIceCandidate(new RTCIceCandidate(iceCandidate))
     })
 
     /**
-     * When a user leaves a channel (or is disconnected from the
-     * signaling server) everyone will recieve a 'remove-peer' message
-     * telling them to trash the media channels they have open for those
-     * that peer. If it was this client that left a channel, they'll also
-     * receive the remove-peers. If this client was disconnected, they
-     * wont receive remove-peers, but rather the
-     * signaling_socket.on('disconnect') code will kick in and tear down
-     * all the peer sessions.
+     * When a user leaves a channel (or is disconnected from the signaling server) everyone will
+     * recieve a 'remove-peer' message telling them to trash the media channels they have open 
+     * that peer. If functionality were to be added to allow leaving a channel, the client that 
+     * left the channel should receive a 'remove-peers' event to remove all peers. 
+     * 
+     * If this client disconnects, the socket.on('disconnect') code kicks in and tears down all
+     * the peer sessions.
      */
     this.socket.on('remove-peer', ({ peerId }) => {
       if (peerId in this.peers) this.peers[peerId].close()
@@ -113,14 +110,11 @@ AFRAME.registerSystem('webrtc', {
     })
   },
 
-  tick: function (d, dt) {
-    // this.throttledFunction()
-  },
-
-  everyFewSeconds: function () {
-    console.log(this.peers)
-  },
-
+  /** 
+   * Gets the user's camera and microphone input stream and adds it to the this.streams object
+   * as well as the this.localStream variable. Afterwards, the 'local-stream' event is emitted
+   * which can be listened to by the object handling the local video stream.
+   */
   setLocalStream: async function (mediaConstraints) {
     try {
       this.localStream = await navigator.mediaDevices.getUserMedia(mediaConstraints)
@@ -131,6 +125,11 @@ AFRAME.registerSystem('webrtc', {
     this.el.emit('local-stream')
   },
 
+  /** 
+   * Adds the stream from an incoming event to the this.streams object and emits a 
+   * 'remote-stream-${peerId}' event to inform objects that need to handle this specific remote
+   * stream that it is ready. 
+   */
   setRemoteStream: function (event, peerId) {
     this.streams[peerId] = event.streams[0]
     this.el.emit(`remote-stream-${peerId}`)
