@@ -62,7 +62,7 @@ AFRAME.registerComponent('player', {
     if (local) {
       console.log(`Local player ${this.game.data.localPlayerId} joined as a ${color} ${shape}`)
       el.sceneEl.addEventListener('local-stream', (e) => {
-        this.el.setAttribute('video-stream', { id: this.data.id })
+        this.el.setAttribute('video-stream', { id: this.data.id, muted: true })
       })
       this.initSocket(shape, color, position, quaternion)
     } else {
