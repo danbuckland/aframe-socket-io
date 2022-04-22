@@ -42,7 +42,6 @@ AFRAME.registerComponent('player', {
     let position = this.data.position
     let quaternion = new THREE.Quaternion()
     this.game = this.el.sceneEl.systems.game
-    this.webrtc = this.el.sceneEl.systems.webrtc
 
     // if player component is local, set some values for the player
     if (local) {
