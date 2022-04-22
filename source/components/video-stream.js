@@ -1,6 +1,6 @@
 AFRAME.registerComponent('video-stream', {
   schema: {
-    id: { type: 'string', default: false },
+    id: { type: 'string' },
     muted: { type: 'boolean', default: false },
   },
 

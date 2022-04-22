@@ -22,24 +22,24 @@ module.exports = function (io) {
       socket.userData.position = data.position
       socket.userData.quaternion = data.quaternion
     })
-		
+
     // update user data that changes frame to frame
     socket.on('update', (data) => {
       socket.userData.position = data.position
       socket.userData.quaternion = data.quaternion
     })
-  
+
     socket.on('join', (roomName) => {
       console.log(`${socket.id} joined ${roomName}`)
       socket.activeVideoCallRoom = roomName // Required currently for the hangUp function
-  
+
       /** When joining, each existing socket in the room should emit an 'add-peer'
        * event to the client containing the id of the joining socket and indicate
        * that they should not create an offer. The socket itself emits the 'add-peer'
        * event for each socket already in the channel, to tell the client to create
        * an offer with each peer.
        */
-  
+
       // Create an offer from the joining socket to everyone else in the room
       const clients = io.sockets.adapter.rooms.get(roomName)
       if (clients) {
@@ -57,14 +57,14 @@ module.exports = function (io) {
       // Finally join the room so future joiners connect to this client
       socket.join(roomName)
     })
-  
+
     socket.on('webrtc-ice-candidate', ({ peerId, iceCandidate }) => {
       io.to(peerId).emit('ice-candidate', {
         peerId: socket.id,
         iceCandidate,
       })
     })
-  
+
     socket.on('relay-session-description', ({ peerId, sessionDescription }) => {
       io.to(peerId).emit('session-description', {
         peerId: socket.id,
@@ -74,13 +74,13 @@ module.exports = function (io) {
 
     /**
      * Called when a user leaves the channel/disconnects.
-     * 
+     *
      * Tells every client left in the channel that this socket left and then informs
      * this socket's client that it should remove each peer in the channel from its peer
      * connections.
      *
      */
-     const hangUp = (roomName) => {
+    const hangUp = (roomName) => {
       console.log(`${socket.id} hanging up on ${roomName}`)
       const clients = io.sockets.adapter.rooms.get(roomName)
       if (clients) {

@@ -117,10 +117,10 @@ AFRAME.registerSystem('webrtc', {
   setLocalStream: async function (mediaConstraints) {
     try {
       this.streams[this.socket.id] = await navigator.mediaDevices.getUserMedia(mediaConstraints)
+      this.el.emit('local-stream')
     } catch (error) {
       console.error('Could not get user media', error)
     }
-    this.el.emit('local-stream')
   },
 
   /** 
