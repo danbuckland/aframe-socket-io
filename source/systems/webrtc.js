@@ -5,7 +5,6 @@ AFRAME.registerSystem('webrtc', {
 
   init: function () {
     this.socket = window.io
-    this.localStream
     this.streams = {}
     const DEFAULT_CHANNEL = 'video-call'
     const MEDIA_CONSTRAINTS = {
@@ -27,16 +26,17 @@ AFRAME.registerSystem('webrtc', {
     // On connection, create a local stream and join the video-call
     this.socket.on('connect', async () => {
       await this.setLocalStream(MEDIA_CONSTRAINTS)
+      const localStream = this.streams[this.socket.id]
       window.addEventListener('keypress', (e) => {
         if (e.key === 'm') {
-          const audioTrack = this.localStream.getTracks().find(track => track.kind === 'audio')
+          const audioTrack = localStream.getTracks().find(track => track.kind === 'audio')
           audioTrack.enabled = !audioTrack.enabled
           console.log(`${audioTrack.enabled ? 'Microphone unmuted' : 'Microphone muted'}`)
         }
       })
       window.addEventListener('keypress', (e) => {
         if (e.key === 'v') {
-          const videoTrack = this.localStream.getTracks().find(track => track.kind === 'video')
+          const videoTrack = localStream.getTracks().find(track => track.kind === 'video')
           videoTrack.enabled = !videoTrack.enabled
         }
       })
@@ -110,14 +110,13 @@ AFRAME.registerSystem('webrtc', {
   },
 
   /** 
-   * Gets the user's camera and microphone input stream and adds it to the this.streams object
-   * as well as the this.localStream variable. Afterwards, the 'local-stream' event is emitted
-   * which can be listened to by the object handling the local video stream.
+   * Gets the user's camera and microphone input stream and adds it to the this.streams object. 
+   * Afterwards, the 'local-stream' event is emitted which can be listened to by the object handling
+   * the local video stream.
    */
   setLocalStream: async function (mediaConstraints) {
     try {
-      this.localStream = await navigator.mediaDevices.getUserMedia(mediaConstraints)
-      this.streams[this.socket.id] = this.localStream
+      this.streams[this.socket.id] = await navigator.mediaDevices.getUserMedia(mediaConstraints)
     } catch (error) {
       console.error('Could not get user media', error)
     }
@@ -177,12 +176,11 @@ AFRAME.registerSystem('webrtc', {
   },
 
   addLocalTracks: function (rtcPeerConnection) {
-    if (!this.localStream) {
-      return console.log('No local stream')
-    }
+    const localStream = this.streams[this.socket.id]
+    if (!localStream) return console.log('No local stream')
 
-    this.localStream.getTracks().forEach((track) => {
-      rtcPeerConnection.addTrack(track, this.localStream)
+    localStream.getTracks().forEach((track) => {
+      rtcPeerConnection.addTrack(track, localStream)
     })
   },
 })
