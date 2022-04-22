@@ -7,6 +7,7 @@ AFRAME.registerSystem('webrtc', {
     this.throttledFunction = AFRAME.utils.throttle(this.everyFewSeconds, 3000, this)
     this.socket = window.io
     this.localStream
+    this.streams = {}
     const DEFAULT_CHANNEL = 'video-call'
     const MEDIA_CONSTRAINTS = {
       audio: true,
@@ -30,22 +31,14 @@ AFRAME.registerSystem('webrtc', {
       window.addEventListener('keypress', (e) => {
         if (e.key === 'm') {
           const audioTrack = this.localStream.getTracks().find(track => track.kind === 'audio')
-          if (audioTrack.enabled) {
-            audioTrack.enabled = false
-          } else {
-            audioTrack.enabled = true
-          }
+          audioTrack.enabled = !audioTrack.enabled
           console.log(`${audioTrack.enabled ? 'Microphone unmuted' : 'Microphone muted'}`)
         }
       })
       window.addEventListener('keypress', (e) => {
         if (e.key === 'v') {
           const videoTrack = this.localStream.getTracks().find(track => track.kind === 'video')
-          if (videoTrack.enabled) {
-            videoTrack.enabled = false
-          } else {
-            videoTrack.enabled = true
-          }
+          videoTrack.enabled = !videoTrack.enabled
         }
       })
       console.log(`You have joined the call, press 'm' to mute and unmute, 'v' to turn off video`)
@@ -129,76 +122,18 @@ AFRAME.registerSystem('webrtc', {
   },
 
   setLocalStream: async function (mediaConstraints) {
-    this.localVideoComponent = document.getElementById(this.socket.id)
     try {
       this.localStream = await navigator.mediaDevices.getUserMedia(mediaConstraints)
+      this.streams[this.socket.id] = this.localStream
     } catch (error) {
       console.error('Could not get user media', error)
     }
-    // If video element doesn't already exist, create it
-    if (!this.video) {
-      const video = document.createElement('video')
-      video.setAttribute('autoplay', true)
-      video.setAttribute('playsinline', true)
-      video.setAttribute('muted', true)
-      this.video = video
-    }
-
-    this.video.srcObject = this.localStream
-    this.video.muted = true
-
-    const playResult = this.video.play()
-    if (playResult instanceof Promise) {
-      playResult.catch((e) => console.log(`Error playing video stream`, e))
-    }
-
-    if (this.videoTexture) {
-      this.videoTexture.dispose()
-    }
-
-    this.videoTexture = new THREE.VideoTexture(this.video)
-
-    const mesh = this.localVideoComponent.getObject3D('mesh')
-    mesh.material.map = this.videoTexture
-    mesh.material.needsUpdate = true
-    mesh.material.color = new THREE.Color(0xffffdd)
-    this.localVideoComponent.srcObject = this.localStream
+    this.el.emit('local-stream')
   },
 
   setRemoteStream: function (event, peerId) {
-    const remoteVideoComponent = document.getElementById(peerId)
-    if (!remoteVideoComponent) {
-      return console.error(`No player mesh created for ${peerId}`)
-    }
-    const remoteStream = event.streams[0]
-    let remoteVideoTexture = null
-    let remoteVideo = null
-
-    if (!remoteVideo) {
-      const video = document.createElement('video')
-      video.setAttribute('autoplay', true)
-      video.setAttribute('playsinline', true)
-      video.setAttribute('muted', true)
-      remoteVideo = video
-    }
-
-    remoteVideo.srcObject = remoteStream
-
-    const playResult = remoteVideo.play()
-    if (playResult instanceof Promise) {
-      playResult.catch((e) => console.log(`Error play video stream`, e))
-    }
-
-    if (remoteVideoTexture) {
-      remoteVideoTexture.dispose()
-    }
-
-    remoteVideoTexture = new THREE.VideoTexture(remoteVideo)
-    const mesh = remoteVideoComponent.getObject3D('mesh')
-    mesh.material.map = remoteVideoTexture
-    mesh.material.color = new THREE.Color(0xffffdd)
-    mesh.material.needsUpdate = true
-    remoteVideoComponent.srcObject = event.streams[0]
+    this.streams[peerId] = event.streams[0]
+    this.el.emit(`remote-stream-${peerId}`)
   },
 
   sendIceCandidate: function (event, peerId) {

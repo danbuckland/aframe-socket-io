@@ -1,6 +1,6 @@
 {
   "name": "socket-vr",
-  "version": "1.0.0",
+  "version": "2.0.1",
   "description": "Using socket.io with A-frame",
   "main": "app.js",
   "scripts": {
@@ -20,7 +20,6 @@
     "log-timestamp": "^0.3.0",
     "socket.io": "^3.1.1",
     "socket.io-client": "^3.1.2",
-    "three": "~0.122",
     "webpack": "^4.44.1",
     "webpack-cli": "^3.3.11"
   },

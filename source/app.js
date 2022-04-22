@@ -3,6 +3,7 @@ import 'aframe'
 
 import './components/destroyer'
 import './components/velocity-glow'
+import './components/video-stream'
 import './primitives/a-player'
 import './systems/debug'
 import './systems/game'

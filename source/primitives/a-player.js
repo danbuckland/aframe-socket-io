@@ -42,6 +42,7 @@ AFRAME.registerComponent('player', {
     let position = this.data.position
     let quaternion = new THREE.Quaternion()
     this.game = this.el.sceneEl.systems.game
+    this.webrtc = this.el.sceneEl.systems.webrtc
 
     // if player component is local, set some values for the player
     if (local) {
@@ -60,9 +61,15 @@ AFRAME.registerComponent('player', {
     // emit 'init' event to share info about the player if player is local
     if (local) {
       console.log(`Local player ${this.game.data.localPlayerId} joined as a ${color} ${shape}`)
+      el.sceneEl.addEventListener('local-stream', (e) => {
+        this.el.setAttribute('video-stream', { id: this.data.id, muted: true })
+      })
       this.initSocket(shape, color, position, quaternion)
     } else {
       console.log(`Player ${this.data.id} joined as a ${color} ${shape}`)
+      el.sceneEl.addEventListener(`remote-stream-${this.data.id}`, (e) => {
+        this.el.setAttribute('video-stream', { id: this.data.id })
+      })
     }
   },
 
