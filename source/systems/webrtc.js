@@ -78,7 +78,6 @@ AFRAME.registerSystem('webrtc', {
      */
     this.socket.on('session-description', async ({ peerId, sessionDescription }) => {
         const peer = this.peers[peerId]
-        console.log(sessionDescription)
         peer.setRemoteDescription(new RTCSessionDescription(sessionDescription))
         if (sessionDescription.type === 'offer') {
           await this.createAnswer(peer, peerId)
