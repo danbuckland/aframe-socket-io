@@ -62,29 +62,15 @@ AFRAME.registerComponent('player', {
     if (local) {
       console.log(`Local player ${this.game.data.localPlayerId} joined as a ${color} ${shape}`)
       el.sceneEl.addEventListener('local-stream', (e) => {
-        this.renderVideoStream(this.webrtc.localStream, true)
+        this.el.setAttribute('video-stream', { id: this.data.id })
       })
       this.initSocket(shape, color, position, quaternion)
     } else {
       console.log(`Player ${this.data.id} joined as a ${color} ${shape}`)
       el.sceneEl.addEventListener(`remote-stream-${this.data.id}`, (e) => {
-        this.renderVideoStream(this.webrtc.remoteStreams[this.data.id], false)  
+        this.el.setAttribute('video-stream', { id: this.data.id })
       })
     }
-  },
-
-  renderVideoStream: function (videoStream, isLocal) {
-    // Create video element to attach the stream to
-    const videoEl = document.createElement('video')
-    videoEl.srcObject = videoStream
-    videoEl.muted = isLocal
-    videoEl.play().catch((e) => console.log(`Error playing video stream`, e))
-
-    // Map video texture from video element to player shape
-    const mesh = this.el.getObject3D('mesh')
-    mesh.material.map = new THREE.VideoTexture(videoEl)
-    mesh.material.needsUpdate = true
-    mesh.material.color = new THREE.Color(0xffffdd)
   },
 
   initSocket: function (shape, color, position, quaternion) {
