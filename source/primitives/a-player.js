@@ -62,47 +62,27 @@ AFRAME.registerComponent('player', {
     if (local) {
       console.log(`Local player ${this.game.data.localPlayerId} joined as a ${color} ${shape}`)
       el.sceneEl.addEventListener('local-stream', (e) => {
-        this.renderLocalStream()
+        this.renderVideoStream(this.webrtc.localStream, true)
       })
       this.initSocket(shape, color, position, quaternion)
     } else {
       console.log(`Player ${this.data.id} joined as a ${color} ${shape}`)
       el.sceneEl.addEventListener(`remote-stream-${this.data.id}`, (e) => {
-        this.renderRemoteStream(this.data.id)
+        this.renderVideoStream(this.webrtc.remoteStreams[this.data.id], false)  
       })
     }
-
   },
 
-  renderLocalStream: function () {
-    const localStream = this.webrtc.localStream
-    this.renderVideoTexture(localStream, true)
-  },
+  renderVideoStream: function (videoStream, isLocal) {
+    // Create video element to attach the stream to
+    const videoEl = document.createElement('video')
+    videoEl.srcObject = videoStream
+    videoEl.muted = isLocal
+    videoEl.play().catch((e) => console.log(`Error playing video stream`, e))
 
-  renderRemoteStream: function (peerId) {
-    const remoteStream = this.webrtc.remoteStreams[peerId]
-    this.renderVideoTexture(remoteStream, false)
-  },
-
-  renderVideoTexture: function (videoStream, isLocal) {
-    if (!this.video) {
-      const video = document.createElement('video')
-      video.setAttribute('autoplay', true)
-      video.setAttribute('playsinline', true)
-      this.video = video
-    }
-    this.video.srcObject = videoStream
-    if (isLocal) {
-      this.video.muted = true
-    }
-
-    const playResult = this.video.play()
-    if (playResult instanceof Promise) {
-      playResult.catch((e) => console.log(`Error playing video stream`, e))
-    }
-
+    // Map video texture from video element to player shape
     const mesh = this.el.getObject3D('mesh')
-    mesh.material.map = new THREE.VideoTexture(this.video)
+    mesh.material.map = new THREE.VideoTexture(videoEl)
     mesh.material.needsUpdate = true
     mesh.material.color = new THREE.Color(0xffffdd)
   },
