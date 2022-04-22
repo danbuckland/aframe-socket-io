@@ -7,7 +7,7 @@ AFRAME.registerSystem('webrtc', {
     this.throttledFunction = AFRAME.utils.throttle(this.everyFewSeconds, 3000, this)
     this.socket = window.io
     this.localStream
-    this.remoteStreams = {}
+    this.streams = {}
     const DEFAULT_CHANNEL = 'video-call'
     const MEDIA_CONSTRAINTS = {
       audio: true,
@@ -124,6 +124,7 @@ AFRAME.registerSystem('webrtc', {
   setLocalStream: async function (mediaConstraints) {
     try {
       this.localStream = await navigator.mediaDevices.getUserMedia(mediaConstraints)
+      this.streams[this.socket.id] = this.localStream
     } catch (error) {
       console.error('Could not get user media', error)
     }
@@ -131,7 +132,7 @@ AFRAME.registerSystem('webrtc', {
   },
 
   setRemoteStream: function (event, peerId) {
-    this.remoteStreams[peerId] = event.streams[0]
+    this.streams[peerId] = event.streams[0]
     this.el.emit(`remote-stream-${peerId}`)
   },
 
