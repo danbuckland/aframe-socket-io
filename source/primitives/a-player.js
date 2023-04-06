@@ -57,6 +57,13 @@ AFRAME.registerComponent('player', {
     el.setAttribute('scale', '0.25 0.25 0.25')
     el.setAttribute('position', position)
 
+    const hat = document.createElement('a-gltf-model')
+    hat.setAttribute('src', '#cowboy-hat')
+    hat.setAttribute('position', '0.09 0.845 0')
+    hat.setAttribute('rotation', '5 90 0')
+    hat.setAttribute('scale', '1.7 1.7 1.7')
+    el.appendChild(hat)
+
     // emit 'init' event to share info about the player if player is local
     if (local) {
       console.log(`Local player ${this.game.data.localPlayerId} joined as a ${color} ${shape}`)

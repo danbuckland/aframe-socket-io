@@ -12,3 +12,4 @@ import './systems/webrtc'
 window.CLOCK = new THREE.Clock()
 window.io = io(`wss://${window.location.hostname}:2002`) // LOCAL
 // window.io = io(`wss://${window.location.hostname}`) // PRODUCTION
+console.log('Cowboy hat by Poly by Google [CC-BY] via Poly Pizza')
